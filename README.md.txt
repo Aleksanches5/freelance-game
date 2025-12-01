@@ -1,0 +1,1 @@
+My Telegram Mini App game about freelance clients.
