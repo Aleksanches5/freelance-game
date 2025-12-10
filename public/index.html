@@ -3,20 +3,296 @@
 <head>
   <meta charset="UTF-8" />
   <title>Freelancer Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- React, ReactDOM, Babel -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-</head>
-<body style="margin: 0; padding: 0;">
-  <div id="root"></div>
+  <style>
+    :root {
+      --tg-bg: var(--tg-theme-bg-color, #efeff3);
+      --tg-text: var(--tg-theme-text-color, #000000);
+      --tg-button: var(--tg-theme-button-color, #3390ec);
+    }
 
-  <!-- Наш React-код -->
-  <script type="text/babel" src="game.js"></script>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--tg-bg);
+      color: var(--tg-text);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .app-title {
+      font-family: monospace;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .phone-wrapper {
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .phone {
+      background: #dcdde1;
+      border-radius: 26px;
+      padding: 16px 12px 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .phone-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #8e8e8e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .avatar-inner {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #cfcfcf;
+    }
+
+    .phone-subtitle {
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    .chat {
+      background: #f2f2f2;
+      border-radius: 18px;
+      padding: 10px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .bubble {
+      max-width: 92%;
+      padding: 8px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      line-height: 1.3;
+      font-family: monospace;
+    }
+
+    .bubble-client {
+      align-self: flex-start;
+      background: #bcd8ff;
+    }
+
+    .bubble-user {
+      align-self: flex-end;
+      background: #b6f7b0;
+    }
+
+    .system-hint {
+      font-size: 11px;
+      font-family: monospace;
+      color: #b00020;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      margin: 4px 4px 0;
+      min-height: 28px;
+    }
+
+    .system-hint span.excl {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .choices-block {
+      margin-top: 8px;
+      background: #dedede;
+      border-radius: 20px;
+      padding: 10px;
+      border: 3px solid #000;
+    }
+
+    .choices-block.decision {
+      background: transparent;
+      border-radius: 20px;
+      border-width: 3px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 2px solid #000;
+      background: #ffffff;
+      font-size: 12px;
+      font-family: monospace;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: background-color 0.15s, transform 0.1s;
+    }
+
+    .choice-btn:last-child {
+      margin-bottom: 0;
+    }
+
+    .choice-btn:hover {
+      background: #90ee90;
+      transform: translateY(-1px);
+    }
+
+    .two-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 999px;
+      border: 2px solid #000;
+      font-family: monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .pill-btn.bad {
+      background: #ff6b6b;
+      color: #000;
+    }
+
+    .pill-btn.good {
+      background: #90ee90;
+      color: #000;
+    }
+
+    .pill-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* Экран результата */
+
+    .result-screen {
+      margin-top: 18px;
+      text-align: center;
+      max-width: 340px;
+    }
+
+    .result-icon-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .result-title {
+      font-family: monospace;
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .result-card {
+      border-radius: 24px;
+      padding: 12px 14px;
+      color: #000;
+      font-family: monospace;
+      text-align: left;
+    }
+
+    .result-card h3 {
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .result-card ul {
+      list-style: none;
+      padding-left: 0;
+      font-size: 13px;
+    }
+
+    .result-card li::before {
+      content: "✓ ";
+    }
+
+    .primary-btn {
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 14px;
+      background: var(--tg-button);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .secondary-btn {
+      margin-top: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #000;
+      font-family: monospace;
+      font-size: 13px;
+      background: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div id="level-title" class="app-title">Уровень 1: Елена</div>
+
+    <div class="phone-wrapper">
+      <div class="phone">
+        <div class="phone-header">
+          <div class="avatar">
+            <div class="avatar-inner"></div>
+          </div>
+          <div id="phone-subtitle" class="phone-subtitle">Уровень 1: Елена</div>
+        </div>
+
+        <div id="chat" class="chat"></div>
+
+        <div id="hint" class="system-hint"></div>
+
+        <div id="choices" class="choices-block"></div>
+      </div>
+    </div>
+
+    <div id="result" class="result-screen"></div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
