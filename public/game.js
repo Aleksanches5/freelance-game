@@ -18,6 +18,7 @@ let stage = 'greeting'; // greeting | decision | result
 // ---------- ОПИСАНИЕ УРОВНЕЙ ----------
 
 const levels = [
+  // ===== УРОВЕНЬ 1: ЕЛЕНА =====
   {
     id: 'elena',
     title: 'Уровень 1: Елена',
@@ -61,6 +62,9 @@ const levels = [
       goodLabel: 'Адекватный'
     },
 
+    // на первых двух уровнях успех — это выбрать "Адекватный"
+    successChoice: 'good',
+
     success: {
       title: 'УСПЕХ!',
       color: '#90EE90',
@@ -82,7 +86,7 @@ const levels = [
     }
   },
 
-  // ---------- УРОВЕНЬ 2 ----------
+  // ===== УРОВЕНЬ 2: ИГОРЬ =====
   {
     id: 'igor',
     title: 'Уровень 2: Игорь',
@@ -127,6 +131,8 @@ const levels = [
       goodLabel: 'Адекватный'
     },
 
+    successChoice: 'good',
+
     success: {
       title: 'УСПЕХ!',
       color: '#90EE90',
@@ -144,6 +150,96 @@ const levels = [
         'У клиента были завышенные ожидания, но ты их не отзеркалил',
         'Фрилансер должен держать границы по срокам',
         'Иначе выгорит быстрее, чем сайт запустится'
+      ]
+    }
+  },
+
+  // ===== УРОВЕНЬ 3: МАРИЯ (сложный, клиент неадекватный) =====
+  {
+    id: 'maria',
+    title: 'Уровень 3: Мария',
+    clientName: 'Мария',
+
+    firstMessage:
+      'Привет! Хочу интернет-магазин «под ключ». Бюджет небольшой, но нужно всё: каталог, личный кабинет, интеграции, реклама и чтобы за неделю.',
+
+    greetingOptions: [
+      {
+        id: 'easy',
+        text: 'Сделаем без проблем, а детали обсудим по ходу.',
+        wrongHint:
+          'Опасно сразу соглашаться на всё и сразу. Надо зафиксировать объём и ожидания.'
+      },
+      {
+        id: 'freeTest',
+        text: 'Давайте я сначала сделаю бесплатный тестовый макет, а потом решим с бюджетом.',
+        wrongHint:
+          'Бесплатная работа и размытый бюджет — тревожный флаг. Лучше сразу обозначить рамки.'
+      },
+      {
+        id: 'correct',
+        text: 'Интернет-магазин — большая задача. Давайте зафиксируем функции, сроки и реальный бюджет.',
+        correct: true
+      }
+    ],
+
+    // делаем диалог чуть длиннее
+    afterCorrectDialogue: [
+      {
+        from: 'user',
+        text: 'Интернет-магазин — большая задача. Давайте зафиксируем функции, сроки и реальный бюджет.'
+      },
+      {
+        from: 'client',
+        text: 'Ну функции хочу «как у маркетплейсов», но платить много не могу. Срок всё равно неделя.'
+      },
+      {
+        from: 'user',
+        text: 'При таком объёме за неделю не получится качественно. Можно сузить функционал или увеличить бюджет и сроки.'
+      },
+      {
+        from: 'client',
+        text: 'Сузить не хочу, бюджет повышать тоже. Давай ты просто сделаешь, а дальше разберёмся по ходу.'
+      }
+    ],
+
+    decisionButtons: {
+      badLabel: 'Неадекватный',
+      goodLabel: 'Адекватный'
+    },
+
+    // на этом уровне успех — выбрать "Неадекватный"
+    successChoice: 'bad',
+
+    // Особые фразы перед итогом (две реплики)
+    decisionPhrases: {
+      success: [
+        'Спасибо за открытость — по объёму задач и ожиданиям проект выглядит токсично.',
+        'Чтобы не сгореть и не завалить дедлайны, я откажусь от этого проекта.'
+      ],
+      fail: [
+        'Хорошо, согласен(на) взять всё «под ключ» за неделю и с текущим бюджетом.',
+        'Надеюсь, бесконечные правки и новые хотелки не превратят этот проект в кошмар.'
+      ]
+    },
+
+    success: {
+      title: 'УСПЕХ!',
+      color: '#90EE90',
+      reasons: [
+        'Ты считал(а) риски по объёму, срокам и бюджету',
+        'Увидел(а) красные флаги: «как у маркетплейсов» и «разберёмся по ходу»',
+        'Сохранил(а) свои границы и ресурсы'
+      ]
+    },
+
+    fail: {
+      title: 'ПРОВАЛ!',
+      color: '#FFB6C1',
+      reasons: [
+        'Согласие на заведомо токсичный проект — прямой путь к выгоранию',
+        'Нереальные сроки + огромный функционал = постоянный стресс',
+        'Фрилансер тоже выбирает клиентов, а не только наоборот'
       ]
     }
   }
@@ -215,10 +311,10 @@ function renderGreetingChoices(level) {
 function handleGreetingChoice(level, option) {
   if (option.correct) {
     setHint('');
-    // Блокируем кнопки
+    // блокируем кнопки
     choicesEl.querySelectorAll('button').forEach((b) => (b.disabled = true));
 
-    // Показываем диалог после правильного ответа
+    // показываем диалог после правильного ответа
     setTimeout(() => {
       level.afterCorrectDialogue.forEach((replica, idx) => {
         setTimeout(() => {
@@ -229,7 +325,7 @@ function handleGreetingChoice(level, option) {
       setTimeout(() => {
         stage = 'decision';
         renderDecisionButtons(level);
-      }, 1000);
+      }, 1000 + 300 * (level.afterCorrectDialogue.length - 1));
     }, 200);
   } else {
     // неверный вариант
@@ -247,35 +343,52 @@ function renderDecisionButtons(level) {
   const badBtn = document.createElement('button');
   badBtn.className = 'pill-btn bad';
   badBtn.textContent = level.decisionButtons.badLabel;
-  badBtn.onclick = () => handleDecision(level, 'fail');
+  badBtn.onclick = () => handleDecision(level, 'bad');
 
   const goodBtn = document.createElement('button');
   goodBtn.className = 'pill-btn good';
   goodBtn.textContent = level.decisionButtons.goodLabel;
-  goodBtn.onclick = () => handleDecision(level, 'success');
+  goodBtn.onclick = () => handleDecision(level, 'good');
 
   wrap.appendChild(badBtn);
   wrap.appendChild(goodBtn);
   choicesEl.appendChild(wrap);
 }
 
-function handleDecision(level, resultType) {
+// choice: 'good' | 'bad'
+function handleDecision(level, choice) {
   // блокируем кнопки
   choicesEl.querySelectorAll('button').forEach((b) => (b.disabled = true));
 
-  const txt =
-    resultType === 'success'
-      ? 'Отлично, мои услуги будут стоить...'
-      : 'Извините, я не готов(а) принимать клиентов на данный момент!';
+  const successChoice = level.successChoice || 'good';
+  const resultType = choice === successChoice ? 'success' : 'fail';
 
-  setTimeout(() => {
-    addMessage('user', txt);
+  // Берём фразы для этого уровня, если есть, иначе дефолт
+  let messages;
+  if (level.decisionPhrases && level.decisionPhrases[resultType]) {
+    messages = level.decisionPhrases[resultType];
+  } else {
+    const defaultText =
+      resultType === 'success'
+        ? 'Отлично, мои услуги будут стоить...'
+        : 'Извините, я не готов(а) принимать клиентов на данный момент!';
+    messages = [defaultText];
+  }
 
+  // отправляем одну или две (или больше) реплики фрилансера
+  let delay = 0;
+  messages.forEach((text, index) => {
     setTimeout(() => {
-      stage = 'result';
-      renderResult(level, resultType);
-    }, 700);
-  }, 200);
+      addMessage('user', text);
+    }, delay);
+    delay += 600; // небольшая пауза между пузырями
+  });
+
+  // показываем итог после всех реплик
+  setTimeout(() => {
+    stage = 'result';
+    renderResult(level, resultType);
+  }, delay + 400);
 }
 
 function renderResult(level, resultType) {
