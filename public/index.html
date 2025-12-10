@@ -1,16 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Freelancer Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-  <h1>Freelancer Game</h1>
-  <p id="scene"></p>
-  <button id="start">Start Game</button>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Freelancer Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <script src="game.js"></script>
-</body>
+    <!-- Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- React, ReactDOM, Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body style="margin: 0; padding: 0;">
+    <!-- React mount point -->
+    <div id="root"></div>
+
+    <!-- Your game code -->
+    <script type="text/babel" src="game.js"></script>
+  </body>
 </html>
