@@ -1,586 +1,380 @@
-// public/game.js
-// Простая мини-игра про фриланс с 5 уровнями
+// game.js
+// Мини-игра "Фрилансер и клиенты" – 3 уровня
 
-// --- Telegram WebApp интеграция ---
-const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.expand();
-  tg.ready();
-}
+// ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ UI ---------- //
 
-// --- Данные игры ---
-
-const LEVELS = [
-  // ---------- УРОВЕНЬ 1 ----------
-  {
-    id: 1,
-    title: "Уровень 1: Елена",
-    clientName: "Елена",
-    avatarEmoji: "👩‍💼",
-    firstMessage:
-      "Привет! Хочу заказать лендинг. Есть текст и структура, нужен дизайн + вёрстка.",
-    clientIsAdequate: true,
-    steps: [
-      {
-        kind: "choice",
-        buttons: [
-          "Здравствуйте! Как вы будете оплачивать? 💳",
-          "Здравствуйте! Какой стиль вам больше всего подходит? 🎨",
-          "Здравствуйте! Какие примерно сроки и бюджет? 📅💰",
-        ],
-        errors: [
-          "Рановато говорить про оплату — сначала нужно понять задачу и объём. ⚠️",
-          "Стиль обсудим позже, а пока важно понять сроки и бюджет. ⚠️",
-          null, // третий вариант — правильный
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Здравствуйте! Какие примерно сроки и бюджет? 📅💰",
-          },
-          {
-            from: "client",
-            text: "10 дней, оплата по этапам. Если всё ок — буду работать с тобой дальше. 🙂",
-          },
-        ],
-      },
-    ],
-    successBullets: [
-      "Сначала уточнил(а) сроки и бюджет. 🎯",
-      "Не перепрыгнул(а) сразу к оплате или стилю. 🧠",
-      "Сформировал(а) рабочие ожидания по проекту. 🤝",
-    ],
-    failBullets: [
-      "Фокус на деталях вместо общей картинки. 🧩",
-      "Сложнее оценить риски и объём работ. ⚠️",
-      "Клиенту важна уверенность, что ты понимаешь задачу. 💬",
-    ],
-  },
-
-  // ---------- УРОВЕНЬ 2 ----------
-  {
-    id: 2,
-    title: "Уровень 2: Игорь",
-    clientName: "Игорь",
-    avatarEmoji: "🧑‍💻",
-    firstMessage:
-      "Добрый день! Нужен сайт-портфолио. Фото есть, тексты частично, хочу за 3 дня и «чтоб вау».",
-    clientIsAdequate: true,
-    steps: [
-      {
-        kind: "choice",
-        buttons: [
-          "Давайте уточним объём работ, сроки и бюджет — похоже, задач много. ✍️",
-          "За 3 дня «вау» не получится, давайте просто быстро что-нибудь соберём. 😅",
-          "Давайте начнём с дизайна, а тексты потом придумаем. ✏️",
-        ],
-        errors: [
-          null,
-          "Если сразу соглашаться на заведомо нереальные ожидания, всё закончится выгоранием. 🔥",
-          "Игнорировать контент и структуру — риск получить «красиво, но бессмысленно». ⚠️",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Давайте уточним объём работ, сроки и бюджет — похоже, задач много. ✍️",
-          },
-          {
-            from: "client",
-            text: "Окей, давай реалистичнее — неделя и по этапам. Главное, чтобы смотрелось круто. 😎",
-          },
-        ],
-      },
-    ],
-    successBullets: [
-      "Помог(ла) клиенту перейти от фантазий к реалистичным срокам. 🕒",
-      "Сохранил(а) фокус на структуре и объёме работ. 🧱",
-      "Не пообещал(а) невозможное ради «вау-эффекта». 💡",
-    ],
-    failBullets: [
-      "Соглашение на нереальные ожидания ведёт к срывам сроков. ⏰",
-      "Отсутствие чётких рамок по объёму и бюджету — путь к конфликтам. ⚠️",
-      "Клиенту нужна экспертность, а не притворное всемогущества. 🎭",
-    ],
-  },
-
-  // ---------- УРОВЕНЬ 3 ----------
-  {
-    id: 3,
-    title: "Уровень 3: Анна",
-    clientName: "Анна",
-    avatarEmoji: "👩‍🎤",
-    firstMessage:
-      "Привет! Нужен интернет-магазин одежды. Ассортимент большой, интеграции с оплатой и доставкой, но бюджет небольшой и надо «запуститься за неделю».",
-    clientIsAdequate: false,
-    steps: [
-      {
-        kind: "choice",
-        buttons: [
-          "Давайте сначала разберёмся с объёмом, интеграциями и минимально реалистичными сроками. 🧩",
-          "Сделаем всё, уложимся за неделю, по ходу разберёмся. 😉",
-          "Давайте просто возьмём готовый шаблон, остальное потом допилим. 🪛",
-        ],
-        errors: [
-          null,
-          "Обещать всё и сразу — это билет в овертаймы и конфликты. ⚠️",
-          "Шаблон без обсуждения нюансов не решит задачу сложного магазина. 🧱",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Давайте сначала разберёмся с объёмом, интеграциями и минимально реалистичными сроками. 🧩",
-          },
-          {
-            from: "client",
-            text: "Объём большой, интеграции нужны все, сроки двигать не хочу и бюджет поднимать тоже. 😐",
-          },
-        ],
-      },
-      {
-        kind: "choice",
-        buttons: [
-          "Могу предложить MVP: часть функционала сейчас, остальное — отдельными этапами. 📦",
-          "Ну давайте попробуем сделать максимум за неделю, там посмотрим. 🤷‍♀️",
-          "Если всё так срочно и без бюджета, давайте вы будете сами разбираться, а я подсоблю по мелочам. 😬",
-        ],
-        errors: [
-          null,
-          "Снова соглашаться на заведомо невыполнимые условия — плохая стратегия. ⛔️",
-          "Пассивная агрессия не помогает выстроить рабочий диалог. 😶‍🌫️",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Могу предложить MVP: часть функционала сейчас, остальное — отдельными этапами. 📦",
-          },
-          {
-            from: "client",
-            text: "Нет, хочу «как у крупных брендов», но в мой бюджет и в мои сроки. По-другому неинтересно. 😤",
-          },
-        ],
-      },
-    ],
-    successBullets: [
-      "Увидел(а) красные флаги: завышенные ожидания при маленьком бюджете. 🚩",
-      "Предложил(а) реалистичный формат (MVP), но клиент отказался. 🧱",
-      "Сделал(а) вывод, что сотрудничество токсично и не стоит продолжения. 🧯",
-    ],
-    failBullets: [
-      "Игнорирование красных флагов ведёт к выгоранию. 🔥",
-      "Даже идеально выстроенный процесс не спасёт при провальных вводных. ⚠️",
-      "Иногда лучший проект — тот, который ты вовремя не взял. 🚪",
-    ],
-  },
-
-  // ---------- УРОВЕНЬ 4 ----------
-  {
-    id: 4,
-    title: "Уровень 4: Максим",
-    clientName: "Максим",
-    avatarEmoji: "🧔",
-    firstMessage:
-      "Нужен лендинг для сервиса. Концепция есть, но я люблю всё контролировать: правки могу кидать до ночи, главное — чтобы было «идеально».",
-    clientIsAdequate: false,
-    steps: [
-      {
-        kind: "choice",
-        buttons: [
-          "Давайте сразу договоримся по этапам, количеству правок и времени ответов. 📝",
-          "Окей, скидывайте всё, буду править хоть каждый час. 💪",
-          "Давайте я сделаю, а вы потом просто скажете, нравится или нет. 🎲",
-        ],
-        errors: [
-          null,
-          "Готовность работать 24/7 без рамок — путь к истощению. ⚠️",
-          "Без критериев и этапов «нравится / не нравится» растягивается бесконечно. ⏳",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Давайте сразу договоримся по этапам, количеству правок и времени ответов. 📝",
-          },
-          {
-            from: "client",
-            text: "Ну, я не люблю рамки. Мне важно иметь возможность всё переправить в любой момент. ⚡️",
-          },
-        ],
-      },
-      {
-        kind: "choice",
-        buttons: [
-          "Тогда мне важно ограничить правки и время ответа, иначе мы не уложимся и вы останетесь недовольны. ⏰",
-          "Хорошо, будем подстраиваться под ваш график, как получится. 🙃",
-          "Давайте просто всё обсуждать в чате без договорённостей. 💬",
-        ],
-        errors: [
-          null,
-          "Подстраиваться под хаос клиента — значит брать хаос на себя. 🌪️",
-          "Отсутствие договорённостей не сделает процесс легче. 📉",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Тогда мне важно ограничить правки и время ответа, иначе мы не уложимся и вы останетесь недовольны. ⏰",
-          },
-          {
-            from: "client",
-            text: "Если вам нужны ограничения — вы, наверное, мне не подходите. Я хочу, чтобы исполнитель был всегда на связи. 😠",
-          },
-        ],
-      },
-    ],
-    successBullets: [
-      "Заметил(а), что клиент не готов к здоровым рамкам и хочет полного контроля. 🎛️",
-      "Попробовал(а) договориться о правилах — клиент отказался. 🚧",
-      "Сделал(а) вывод, что ожидания по вовлечению нереалистичны. ⚠️",
-    ],
-    failBullets: [
-      "Согласие жить в вечной готовности под правки разрушает личные границы. 🚨",
-      "Клиент, который не признаёт рамок, редко доволен результатом. 😓",
-      "Умение отказывать — часть профессионализма. 🧠",
-    ],
-  },
-
-  // ---------- УРОВЕНЬ 5 ----------
-  {
-    id: 5,
-    title: "Уровень 5: Сергей",
-    clientName: "Сергей",
-    avatarEmoji: "🧑‍💼",
-    firstMessage:
-      "Добрый день! Запускаем новый онлайн-курс. Нужен лендинг, email-цепочка и несколько баннеров. Бюджет ограничен, но хочу выстроить долгосрочную работу.",
-    clientIsAdequate: true,
-    steps: [
-      {
-        kind: "choice",
-        buttons: [
-          "Супер! Давайте начнём с приоритетов: что обязательно нужно к старту, а что можно отложить. 🎯",
-          "Давайте сделаем всё сразу, а там по ходу разберёмся. 🔥",
-          "Могу заняться только лендингом, остальное вам лучше отдать другим. 🙈",
-        ],
-        errors: [
-          null,
-          "«Сделать всё сразу» = сильный риск завалить сроки и качество. ⚠️",
-          "Резко отказываться от части задач без обсуждения приоритетов — не лучшая стратегия. 🤔",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Супер! Давайте начнём с приоритетов: что обязательно нужно к старту, а что можно отложить. 🎯",
-          },
-          {
-            from: "client",
-            text: "Главное — лендинг и пара писем к запуску. Остальное можно доработать после первых продаж. 🙂",
-          },
-        ],
-      },
-      {
-        kind: "choice",
-        buttons: [
-          "Предлагаю фиксировать объём на первый спринт и отдельно прописать задачи на поддержку. 📚",
-          "Давайте без договорённостей, всё равно план изменится. 🌪️",
-          "Давайте всё обсуждать голосом, без переписок. 🎙️",
-        ],
-        errors: [
-          null,
-          "Отсутствие фиксации объёма превращает проект в бесконечный. ⏳",
-          "Голосом удобно, но без текстовых договорённостей легко всё забыть. 🧠",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Предлагаю фиксировать объём на первый спринт и отдельно прописать задачи на поддержку. 📚",
-          },
-          {
-            from: "client",
-            text: "Отлично, так и сделаем. Я за структурный подход и долгосрочное сотрудничество. 🤝",
-          },
-        ],
-      },
-      {
-        kind: "choice",
-        buttons: [
-          "Я могу предложить пакет: лендинг + базовая email-цепочка, а баннеры добавим вторым этапом. 🧩",
-          "Сделаем только лендинг, остальное пусть делает кто-нибудь другой. 😐",
-          "Давайте вообще всё отложим до первых продаж. 😅",
-        ],
-        errors: [
-          null,
-          "Резко отрезать часть задач без обсуждения стратегии — не лучшая идея. 🧊",
-          "Если отложить всё, старт сорвётся. 🚫",
-        ],
-        dialog: [
-          {
-            from: "user",
-            text: "Я могу предложить пакет: лендинг + базовая email-цепочка, а баннеры добавим вторым этапом. 🧩",
-          },
-          {
-            from: "client",
-            text: "Звучит отлично, так нам будет проще планировать. Готов работать по такому формату. 🙌",
-          },
-        ],
-      },
-    ],
-    successBullets: [
-      "Помог(ла) клиенту расставить приоритеты и не распыляться. 🎯",
-      "Зафиксировал(а) объём и формат поддержки. 📋",
-      "Предложил(а) адекватный пакет работ с перспективой продолжения. 📈",
-    ],
-    failBullets: [
-      "Без приоритизации легко утонуть в задачах. 🌊",
-      "Отказ от договорённостей делает даже адекватного клиента проблемным. ⚠️",
-      "Важно видеть потенциальных долгосрочных партнёров. 🤝",
-    ],
-  },
-];
-
-// --- Глобальные переменные интерфейса ---
-let root;
-let headerTitleEl;
-let avatarEmojiEl;
-let avatarNameEl;
-let chatContainer;
-let hintEl;
-let buttonsContainer;
-
-let currentLevelIndex = 0;
-let currentStepIndex = 0;
-
-// --- Вспомогательные функции UI ---
-
-function getThemeColor(varName, fallback) {
-  if (!window.getComputedStyle) return fallback;
-  return (
-    getComputedStyle(document.documentElement).getPropertyValue(varName) ||
-    fallback
-  );
-}
-
-function initLayout() {
+function createLayout() {
   document.body.style.margin = "0";
-  document.body.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
-  document.body.style.backgroundColor = getThemeColor(
-    "--tg-theme-secondary-bg-color",
-    "#dcdde1"
-  );
+  document.body.style.background = "#d7d7dc";
+  document.body.style.fontFamily = "'JetBrains Mono', 'Fira Code', monospace";
 
-  root = document.createElement("div");
-  root.style.minHeight = "100vh";
-  root.style.display = "flex";
-  root.style.justifyContent = "center";
-  root.style.alignItems = "center";
-  root.style.padding = "16px";
-  document.body.appendChild(root);
+  const wrapper = document.createElement("div");
+  wrapper.style.maxWidth = "420px";
+  wrapper.style.margin = "0 auto";
+  wrapper.style.minHeight = "100vh";
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+  wrapper.style.alignItems = "center";
+  wrapper.style.justifyContent = "flex-start";
+  wrapper.style.padding = "16px";
+  document.body.innerHTML = "";
+  document.body.appendChild(wrapper);
 
-  const card = document.createElement("div");
-  card.style.width = "100%";
-  card.style.maxWidth = "420px";
-  card.style.backgroundColor = getThemeColor(
-    "--tg-theme-bg-color",
-    "#f5f6fa"
-  );
-  card.style.borderRadius = "32px";
-  card.style.boxShadow = "0 12px 40px rgba(0,0,0,0.12)";
-  card.style.display = "flex";
-  card.style.flexDirection = "column";
-  card.style.padding = "20px 20px 12px 20px";
-  card.style.boxSizing = "border-box";
-  root.appendChild(card);
+  const title = document.createElement("h1");
+  title.id = "level-title";
+  title.style.fontSize = "18px";
+  title.style.margin = "8px 0 16px 0";
+  title.style.textAlign = "center";
+  wrapper.appendChild(title);
 
-  // Header
-  const header = document.createElement("div");
-  header.style.textAlign = "center";
-  header.style.marginBottom = "12px";
-  card.appendChild(header);
+  const phone = document.createElement("div");
+  phone.style.width = "320px";
+  phone.style.borderRadius = "24px";
+  phone.style.background = "#f0f0f3";
+  phone.style.boxShadow = "0 8px 20px rgba(0,0,0,0.25)";
+  phone.style.padding = "16px 14px 18px 14px";
+  phone.style.display = "flex";
+  phone.style.flexDirection = "column";
+  wrapper.appendChild(phone);
 
-  headerTitleEl = document.createElement("div");
-  headerTitleEl.style.fontSize = "20px";
-  headerTitleEl.style.fontWeight = "700";
-  headerTitleEl.style.letterSpacing = "2px";
-  headerTitleEl.style.textTransform = "uppercase";
-  headerTitleEl.style.marginBottom = "6px";
-  headerTitleEl.style.fontFamily = "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-  headerTitleEl.style.color = getThemeColor(
-    "--tg-theme-text-color",
-    "#111"
-  );
-  header.appendChild(headerTitleEl);
-
-  // Avatar
-  const avatarWrap = document.createElement("div");
-  avatarWrap.style.display = "flex";
-  avatarWrap.style.flexDirection = "column";
-  avatarWrap.style.alignItems = "center";
-  avatarWrap.style.marginBottom = "10px";
-  card.appendChild(avatarWrap);
+  // "Аватарка"
+  const head = document.createElement("div");
+  head.style.display = "flex";
+  head.style.flexDirection = "column";
+  head.style.alignItems = "center";
+  head.style.marginBottom = "8px";
 
   const avatarCircle = document.createElement("div");
-  avatarCircle.style.width = "68px";
-  avatarCircle.style.height = "68px";
+  avatarCircle.id = "avatar-circle";
+  avatarCircle.style.width = "40px";
+  avatarCircle.style.height = "40px";
   avatarCircle.style.borderRadius = "50%";
-  avatarCircle.style.backgroundColor = "#bfc5d7";
+  avatarCircle.style.background = "#c8c8c8";
   avatarCircle.style.display = "flex";
   avatarCircle.style.alignItems = "center";
   avatarCircle.style.justifyContent = "center";
-  avatarCircle.style.fontSize = "34px";
-  avatarCircle.style.marginBottom = "6px";
-  avatarWrap.appendChild(avatarCircle);
+  avatarCircle.style.fontSize = "20px";
+  head.appendChild(avatarCircle);
 
-  avatarEmojiEl = document.createElement("div");
-  avatarCircle.appendChild(avatarEmojiEl);
+  const nameLabel = document.createElement("div");
+  nameLabel.id = "avatar-name";
+  nameLabel.style.fontSize = "12px";
+  nameLabel.style.marginTop = "4px";
+  nameLabel.style.color = "#444";
+  head.appendChild(nameLabel);
 
-  avatarNameEl = document.createElement("div");
-  avatarNameEl.style.fontSize = "14px";
-  avatarNameEl.style.fontWeight = "600";
-  avatarNameEl.style.letterSpacing = "1px";
-  avatarNameEl.style.textTransform = "uppercase";
-  avatarNameEl.style.fontFamily = headerTitleEl.style.fontFamily;
-  avatarNameEl.style.color = getThemeColor(
-    "--tg-theme-hint-color",
-    "#555"
-  );
-  avatarWrap.appendChild(avatarNameEl);
+  phone.appendChild(head);
 
-  // Chat container
-  chatContainer = document.createElement("div");
-  chatContainer.style.flex = "1";
-  chatContainer.style.padding = "12px";
-  chatContainer.style.borderRadius = "24px";
-  chatContainer.style.backgroundColor = "#e0e4f1";
-  chatContainer.style.overflowY = "auto";
-  chatContainer.style.maxHeight = "60vh";
-  card.appendChild(chatContainer);
+  // Чат
+  const chat = document.createElement("div");
+  chat.id = "chat";
+  chat.style.flex = "1";
+  chat.style.minHeight = "260px";
+  chat.style.background = "#e4e4ea";
+  chat.style.borderRadius = "18px";
+  chat.style.padding = "10px";
+  chat.style.overflowY = "auto";
+  phone.appendChild(chat);
 
-  // Hint
-  hintEl = document.createElement("div");
-  hintEl.style.minHeight = "20px";
-  hintEl.style.fontSize = "13px";
-  hintEl.style.margin = "6px 6px 4px";
-  hintEl.style.color = "#e74c3c";
-  hintEl.style.fontFamily = headerTitleEl.style.fontFamily;
-  card.appendChild(hintEl);
+  // Подсказки / ошибки
+  const hint = document.createElement("div");
+  hint.id = "hint";
+  hint.style.minHeight = "32px";
+  hint.style.marginTop = "8px";
+  hint.style.fontSize = "11px";
+  hint.style.color = "#c53030";
+  hint.style.display = "flex";
+  hint.style.alignItems = "flex-start";
+  hint.style.gap = "4px";
+  phone.appendChild(hint);
 
-  // Buttons container
-  buttonsContainer = document.createElement("div");
-  buttonsContainer.style.marginTop = "6px";
-  buttonsContainer.style.paddingTop = "6px";
-  buttonsContainer.style.borderTop = "2px solid rgba(0,0,0,0.08)";
-  card.appendChild(buttonsContainer);
-}
+  // Зона кнопок
+  const controls = document.createElement("div");
+  controls.id = "controls";
+  controls.style.marginTop = "8px";
+  phone.appendChild(controls);
 
-function clearChat() {
-  chatContainer.innerHTML = "";
+  // Панель под телефоном – кнопка "повторить / следующий"
+  const footer = document.createElement("div");
+  footer.id = "footer-controls";
+  footer.style.marginTop = "12px";
+  wrapper.appendChild(footer);
 }
 
 function addMessage(text, from) {
+  const chat = document.getElementById("chat");
   const row = document.createElement("div");
   row.style.display = "flex";
   row.style.marginBottom = "6px";
-  row.style.justifyContent = from === "user" ? "flex-end" : "flex-start";
 
   const bubble = document.createElement("div");
-  bubble.style.maxWidth = "80%";
+  bubble.textContent = text;
   bubble.style.padding = "8px 10px";
-  bubble.style.borderRadius = "18px";
-  bubble.style.fontSize = "14px";
-  bubble.style.lineHeight = "1.4";
-  bubble.style.fontFamily = "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+  bubble.style.borderRadius = "14px";
+  bubble.style.fontSize = "12px";
+  bubble.style.maxWidth = "80%";
+  bubble.style.lineHeight = "1.3";
+  bubble.style.border = "1px solid rgba(0,0,0,0.12)";
 
   if (from === "client") {
-    bubble.style.backgroundColor = "#cde3ff";
-    bubble.style.color = "#000";
-    bubble.style.border = "2px solid #99b9ff";
+    row.style.justifyContent = "flex-start";
+    bubble.style.background = "#bcdcff";
   } else if (from === "user") {
-    bubble.style.backgroundColor = "#c8f7c5";
-    bubble.style.color = "#000";
-    bubble.style.border = "2px solid #9adf90";
+    row.style.justifyContent = "flex-end";
+    bubble.style.background = "#c6f7bf";
   } else {
-    bubble.style.backgroundColor = "#f5f5f5";
-    bubble.style.color = "#333";
-    bubble.style.border = "1px dashed #aaa";
+    row.style.justifyContent = "center";
+    bubble.style.background = "#fff";
   }
 
-  bubble.textContent = text;
   row.appendChild(bubble);
-  chatContainer.appendChild(row);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
 }
 
 function setHint(text) {
-  hintEl.textContent = text || "";
+  const hint = document.getElementById("hint");
+  if (!text) {
+    hint.textContent = "";
+    return;
+  }
+  hint.innerHTML = "";
+  const ex = document.createElement("span");
+  ex.textContent = "!";
+  ex.style.fontWeight = "bold";
+  ex.style.fontSize = "16px";
+  ex.style.marginRight = "2px";
+  hint.appendChild(ex);
+
+  const span = document.createElement("span");
+  span.textContent = text;
+  hint.appendChild(span);
 }
 
-function clearButtons() {
-  buttonsContainer.innerHTML = "";
+function clearControls() {
+  const controls = document.getElementById("controls");
+  controls.innerHTML = "";
 }
 
-function renderButtons(buttonLabels, onClick) {
-  clearButtons();
+function renderButtons(options, onClick) {
+  clearControls();
+  const controls = document.getElementById("controls");
 
-  buttonLabels.forEach((label, index) => {
+  options.forEach((opt, index) => {
     const btn = document.createElement("button");
-    btn.textContent = label;
+    btn.textContent = opt;
     btn.style.width = "100%";
-    btn.style.margin = "4px 0";
-    btn.style.padding = "10px 12px";
-    btn.style.borderRadius = "18px";
+    btn.style.marginBottom = "6px";
+    btn.style.padding = "8px 10px";
+    btn.style.borderRadius = "16px";
     btn.style.border = "2px solid #000";
-    btn.style.backgroundColor = "#ffffff";
+    btn.style.background = "#ffffff";
+    btn.style.fontSize = "11px";
+    btn.style.fontFamily = "'JetBrains Mono', 'Fira Code', monospace";
     btn.style.cursor = "pointer";
-    btn.style.fontSize = "14px";
-    btn.style.fontFamily = "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-    btn.onmouseenter = () => (btn.style.backgroundColor = "#c8f7c5");
-    btn.onmouseleave = () => (btn.style.backgroundColor = "#ffffff");
-    btn.onclick = () => onClick(index, label);
-    buttonsContainer.appendChild(btn);
+    btn.onmouseenter = () => (btn.style.background = "#aef4a5");
+    btn.onmouseleave = () => (btn.style.background = "#ffffff");
+    btn.onclick = () => onClick(index, opt);
+    controls.appendChild(btn);
   });
 }
 
 function disableButtons() {
-  Array.from(buttonsContainer.querySelectorAll("button")).forEach((btn) => {
-    btn.disabled = true;
-    btn.style.opacity = "0.6";
-    btn.style.cursor = "default";
+  const controls = document.getElementById("controls");
+  Array.from(controls.querySelectorAll("button")).forEach((b) => {
+    b.disabled = true;
+    b.style.opacity = "0.7";
+    b.style.cursor = "default";
   });
 }
 
-// --- Логика уровней ---
+// ---------- ОПИСАНИЕ УРОВНЕЙ ---------- //
+
+const level1 = {
+  id: 1,
+  name: "Елена",
+  avatar: "👩‍💻",
+  startMessage:
+    "Привет! Хочу заказать лендинг. Есть текст и структура, нужен дизайн + вёрстка.",
+  firstChoices: [
+    "Здравствуйте! Как вы будете оплачивать?",
+    "Здравствуйте! Какой стиль вам больше всего подходит?",
+    "Здравствуйте! Какие примерно сроки и бюджет?"
+  ],
+  firstErrors: [
+    "Рановато говорить об оплате — сначала уточни общие детали.",
+    "Сначала лучше уточнить сроки и бюджет, а не стили.",
+    null // третья — правильная
+  ],
+  firstClientReply:
+    "10 дней, оплата по этапам. Если всё ок — буду работать с тобой дальше.",
+  // Уровень 1 — без второго набора реплик
+  secondChoices: null,
+  secondClientReply: null,
+  correctFinal: "adequate",
+  result: {
+    correct: {
+      title: "УСПЕХ!",
+      subtitle: "Почему выбор верный:",
+      reasons: [
+        "Клиент чётко ставит задачу и описывает этапы работы",
+        "Сроки вменяемые для лендинга",
+        "Оплата по этапам — здоровый формат сотрудничества"
+      ]
+    },
+    wrong: {
+      title: "ПРОВАЛ!",
+      subtitle: "Почему выбор неверный:",
+      reasons: [
+        "Клиент даёт понятные сроки и формат оплаты",
+        "Нет признаков неуважения или странных требований",
+        "Такого клиента лучше отнести к адекватным"
+      ]
+    }
+  }
+};
+
+const level2 = {
+  id: 2,
+  name: "Андрей",
+  avatar: "👨‍💼",
+  startMessage:
+    "Добрый день! Нужен лендинг под запуск курса. Структура есть, но придётся додумать блоки.",
+  firstChoices: [
+    "Сколько блоков вы планируете и какие дедлайны?",
+    "Сколько будет стоить ваш курс?",
+    "Сделаем, но только если без правок."
+  ],
+  firstErrors: [
+    null, // первая — правильная
+    "Цена курса сейчас не важна — лучше уточнить объём и сроки.",
+    "Жёсткий отказ от правок может отпугнуть нормального клиента."
+  ],
+  firstClientReply:
+    "Хотелось бы уложиться за 2 недели. По блокам — штук 8–10, нужен современный дизайн.",
+  // Второе сообщение фрилансера с выбором
+  secondChoices: [
+    "Сделаем. Подготовлю прототип и дизайн, заложим 2 круга правок.",
+    "Сделаем, но без правок вообще.",
+    "Я могу только сверстать по готовому дизайну."
+  ],
+  secondClientReply:
+    "Окей, давай тогда прототип + дизайн. С правками договорились.",
+  correctFinal: "adequate",
+  result: {
+    correct: {
+      title: "УСПЕХ!",
+      subtitle: "Почему выбор верный:",
+      reasons: [
+        "Клиент обсуждает сроки и объём спокойно",
+        "Готов работать по этапной логике и с правками",
+        "Уважает профессиональное мнение исполнителя"
+      ]
+    },
+    wrong: {
+      title: "ПРОВАЛ!",
+      subtitle: "Почему выбор неверный:",
+      reasons: [
+        "Клиент вёл себя конструктивно и был готов к диалогу",
+        "Требования реалистичны для такого объёма работы",
+        "Нет красных флагов, чтобы записывать его в неадекватные"
+      ]
+    }
+  }
+};
+
+const level3 = {
+  id: 3,
+  name: "Мария",
+  avatar: "👩‍🦰",
+  startMessage:
+    "Здравствуйте! Мне нужен интернет-магазин косметики. Очень срочно. В идеале — сегодня.",
+  firstChoices: [
+    "Здравствуйте! Давайте уточним объём магазина?",
+    "Здравствуйте! А сегодня — это до какого времени?",
+    "Здравствуйте! Уточните, пожалуйста, функционал магазина."
+  ],
+  firstErrors: [
+    "Лучше начать с функционала и объёма, а не с абстрактного магазина.",
+    null, // вторая — норм, но не лучшая
+    null // третья — тоже допустима
+  ],
+  firstClientReply:
+    "Мне нужно просто, чтобы магазин работал! Каталог, корзина, оплата. Это же делается быстро!",
+  // Вторая реплика фрилансера с ВЫБОРОМ из трёх фраз
+  secondChoices: [
+    "Для такого магазина нужны и дизайн, и бэкенд — за один день это нереалистично.",
+    "Хорошо, но нужен подробный список страниц и функций. Без него сроки не оценить.",
+    "Можно попробовать, если убрать каталог и оставить только одну страницу."
+  ],
+  secondClientReply:
+    "Почему вы всё усложняете? Я думала, вы профессионал! Разве сложно просто сделать магазин?!",
+  correctFinal: "inadequate", // ВАЖНО: правильный ответ — НЕАДЕКВАТНЫЙ
+  result: {
+    correct: {
+      title: "УСПЕХ!",
+      subtitle: "Почему выбор верный:",
+      reasons: [
+        "Клиент ставит заведомо нереалистичные сроки",
+        "Не слышит объяснения про объём и технические ограничения",
+        "Начинает обвинять исполнителя вместо диалога"
+      ]
+    },
+    wrong: {
+      title: "ПРОВАЛ!",
+      subtitle: "Почему выбор неверный:",
+      reasons: [
+        "Игнорируются красные флаги: нереальные сроки и агрессия",
+        "Такое поведение быстро приведёт к выгоранию и конфликтам",
+        "Важно уметь вовремя распознавать токсичных клиентов"
+      ]
+    }
+  }
+};
+
+const levels = [level1, level2, level3];
+
+// ---------- ЛОГИКА ИГРЫ ---------- //
+
+let currentLevelIndex = 0;
+let stage = 0; // 0 — первый выбор, 1 — второй выбор (если есть), 2 — финальная оценка
 
 function startLevel(index) {
-  const level = LEVELS[index];
   currentLevelIndex = index;
-  currentStepIndex = 0;
+  stage = 0;
 
-  headerTitleEl.textContent = level.title.toUpperCase();
-  avatarEmojiEl.textContent = level.avatarEmoji;
-  avatarNameEl.textContent = level.clientName;
+  const level = levels[currentLevelIndex];
+
+  const titleEl = document.getElementById("level-title");
+  titleEl.textContent = `Уровень ${level.id}: ${level.name}`;
+
+  const avatarCircle = document.getElementById("avatar-circle");
+  avatarCircle.textContent = level.avatar || "";
+
+  const avatarName = document.getElementById("avatar-name");
+  avatarName.textContent = level.name;
+
+  const chat = document.getElementById("chat");
+  chat.innerHTML = "";
+
   setHint("");
 
-  clearChat();
-  addMessage(level.firstMessage, "client");
-  renderStep(level, currentStepIndex);
+  addMessage(level.startMessage, "client");
+
+  // Первый выбор
+  renderButtons(level.firstChoices, handleFirstChoice);
+
+  // Очистить нижнюю панель (кнопки "повторить"/"следующий")
+  const footer = document.getElementById("footer-controls");
+  footer.innerHTML = "";
 }
 
-function renderStep(level, stepIndex) {
-  const step = level.steps[stepIndex];
-
-  if (!step) {
-    renderFinalChoice(level);
-    return;
-  }
-
-  if (step.kind === "choice") {
-    renderButtons(step.buttons, (choiceIndex, label) =>
-      handleStepChoice(level, stepIndex, choiceIndex, label)
-    );
-  }
-}
-
-// --- ВАЖНО: исправленная функция без задвоения реплик ---
-function handleStepChoice(level, stepIndex, choiceIndex, buttonText) {
-  const step = level.steps[stepIndex];
+function handleFirstChoice(index, text) {
+  const level = levels[currentLevelIndex];
   const errorText =
-    step.errors && step.errors[choiceIndex] ? step.errors[choiceIndex] : null;
+    level.firstErrors && level.firstErrors[index]
+      ? level.firstErrors[index]
+      : null;
 
   if (errorText) {
     setHint(errorText);
@@ -589,188 +383,221 @@ function handleStepChoice(level, stepIndex, choiceIndex, buttonText) {
 
   setHint("");
   disableButtons();
-
-  // Диалог берём только из step.dialog.
-  // Если вдруг он отсутствует — показываем хотя бы текст кнопки.
-  const dialog =
-    step.dialog && step.dialog.length
-      ? step.dialog
-      : [{ from: "user", text: buttonText }];
-
-  let delay = 0;
-  dialog.forEach((replica) => {
-    setTimeout(() => {
-      addMessage(replica.text, replica.from);
-    }, delay);
-    delay += 450;
-  });
-
-  setTimeout(() => {
-    currentStepIndex++;
-    if (currentStepIndex < level.steps.length) {
-      renderStep(level, currentStepIndex);
-    } else {
-      renderFinalChoice(level);
-    }
-  }, delay + 200);
-}
-
-// --- Финальное решение по уровню ---
-
-function renderFinalChoice(level) {
-  renderButtons(
-    ["Клиент адекватный ✅", "Клиент неадекватный ❌"],
-    (index) => {
-      const playerThinksAdequate = index === 0;
-      handleFinalChoice(level, playerThinksAdequate);
-    }
-  );
-}
-
-function handleFinalChoice(level, playerThinksAdequate) {
-  disableButtons();
-  setHint("");
-
-  const text =
-    playerThinksAdequate && level.clientIsAdequate
-      ? "Считаю, что клиент вполне адекватный и с ним можно работать. 🙂"
-      : !playerThinksAdequate && !level.clientIsAdequate
-      ? "Считаю, что сотрудничество не выглядит здоровым, лучше отказаться. 🚪"
-      : playerThinksAdequate && !level.clientIsAdequate
-      ? "Кажется, я переоценил(а) этого клиента и проигнорировал(а) красные флаги. 😬"
-      : "Я, похоже, слишком подозрителен(на) к этому клиенту. 😅";
-
   addMessage(text, "user");
 
-  const isSuccess = playerThinksAdequate === level.clientIsAdequate;
-
   setTimeout(() => {
-    showResultScreen(level, isSuccess);
-  }, 700);
+    addMessage(level.firstClientReply, "client");
+
+    // Есть ли второй набор реплик у фрилансера?
+    if (level.secondChoices && level.secondChoices.length) {
+      stage = 1;
+      setTimeout(() => {
+        renderButtons(level.secondChoices, handleSecondChoice);
+      }, 400);
+    } else {
+      stage = 2;
+      setTimeout(() => {
+        renderFinalChoice();
+      }, 400);
+    }
+  }, 500);
 }
 
-// --- Экран результата ---
+function handleSecondChoice(index, text) {
+  const level = levels[currentLevelIndex];
+  disableButtons();
+  setHint("");
+  addMessage(text, "user");
 
-function showResultScreen(level, success) {
-  root.innerHTML = "";
+  setTimeout(() => {
+    addMessage(level.secondClientReply, "client");
+    stage = 2;
+    setTimeout(() => {
+      renderFinalChoice();
+    }, 500);
+  }, 500);
+}
 
-  const wrap = document.createElement("div");
-  wrap.style.width = "100%";
-  wrap.style.maxWidth = "420px";
-  wrap.style.margin = "0 auto";
-  wrap.style.minHeight = "100vh";
-  wrap.style.display = "flex";
-  wrap.style.flexDirection = "column";
-  wrap.style.alignItems = "center";
-  wrap.style.justifyContent = "center";
-  wrap.style.padding = "24px 16px";
-  wrap.style.boxSizing = "border-box";
-  root.appendChild(wrap);
+function renderFinalChoice() {
+  const options = ["Неадекватный", "Адекватный"];
 
-  const iconRow = document.createElement("div");
-  iconRow.style.display = "flex";
-  iconRow.style.gap = "12px";
-  iconRow.style.marginBottom = "16px";
-  iconRow.style.alignItems = "center";
-  wrap.appendChild(iconRow);
+  renderButtons(options, (index, text) => {
+    const value = text === "Адекватный" ? "adequate" : "inadequate";
+    handleFinalChoice(value, text);
+  });
+}
 
-  if (success) {
-    ["⭐️", "🌟", "⭐️"].forEach((emoji) => {
-      const span = document.createElement("span");
-      span.textContent = emoji;
-      span.style.fontSize = "40px";
-      iconRow.appendChild(span);
-    });
-  } else {
-    const span = document.createElement("span");
-    span.textContent = "☠️";
-    span.style.fontSize = "54px";
-    iconRow.appendChild(span);
-  }
+function handleFinalChoice(value, labelText) {
+  const level = levels[currentLevelIndex];
+  disableButtons();
+  setHint("");
+  addMessage(labelText, "user");
 
-  const title = document.createElement("div");
-  title.style.fontSize = "40px";
-  title.style.fontWeight = "900";
-  title.style.fontFamily =
-    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-  title.style.marginBottom = "16px";
-  title.style.letterSpacing = "6px";
-  title.style.textTransform = "uppercase";
-  title.style.color = getThemeColor(
-    "--tg-theme-text-color",
-    "#000"
-  );
-  title.textContent = success ? "УСПЕХ!" : "ПРОВАЛ!";
-  wrap.appendChild(title);
+  const isCorrect = value === level.correctFinal;
+
+  setTimeout(() => {
+    showResult(level, isCorrect);
+  }, 600);
+}
+
+function showResult(level, isCorrect) {
+  const wrapper = document.body.firstChild;
+  const footer = document.getElementById("footer-controls");
+  const chat = document.getElementById("chat");
+  const controls = document.getElementById("controls");
+  const hint = document.getElementById("hint");
+
+  chat.innerHTML = "";
+  controls.innerHTML = "";
+  hint.innerHTML = "";
 
   const box = document.createElement("div");
-  box.style.backgroundColor = success ? "#c8f7c5" : "#ffb6c1";
-  box.style.borderRadius = "24px";
-  box.style.padding = "18px 16px";
-  box.style.maxWidth = "420px";
   box.style.width = "100%";
-  box.style.boxSizing = "border-box";
-  wrap.appendChild(box);
+  box.style.textAlign = "center";
+  box.style.marginTop = "20px";
+
+  const svgWrap = document.createElement("div");
+  svgWrap.style.marginBottom = "16px";
+  svgWrap.style.display = "flex";
+  svgWrap.style.justifyContent = "center";
+  svgWrap.style.gap = "10px";
+
+  if (isCorrect) {
+    // Звёзды
+    for (let i = 0; i < 3; i++) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("width", i === 1 ? "80" : "60");
+      svg.setAttribute("height", i === 1 ? "80" : "60");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      const poly = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "polygon"
+      );
+      poly.setAttribute(
+        "points",
+        "50,15 61,40 88,40 67,57 73,85 50,70 27,85 33,57 12,40 39,40"
+      );
+      poly.setAttribute("fill", "#FFD700");
+      poly.setAttribute("stroke", "#FFA500");
+      poly.setAttribute("stroke-width", "2");
+      svg.appendChild(poly);
+      svgWrap.appendChild(svg);
+    }
+  } else {
+    // Череп
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "90");
+    svg.setAttribute("height", "90");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    const circle = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    circle.setAttribute("cx", "50");
+    circle.setAttribute("cy", "40");
+    circle.setAttribute("r", "25");
+    circle.setAttribute("fill", "#fff");
+    circle.setAttribute("stroke", "#000");
+    circle.setAttribute("stroke-width", "2");
+    svg.appendChild(circle);
+
+    const eye1 = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+    eye1.setAttribute("cx", "42");
+    eye1.setAttribute("cy", "38");
+    eye1.setAttribute("rx", "5");
+    eye1.setAttribute("ry", "7");
+    eye1.setAttribute("fill", "#000");
+    svg.appendChild(eye1);
+
+    const eye2 = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+    eye2.setAttribute("cx", "58");
+    eye2.setAttribute("cy", "38");
+    eye2.setAttribute("rx", "5");
+    eye2.setAttribute("ry", "7");
+    eye2.setAttribute("fill", "#000");
+    svg.appendChild(eye2);
+
+    const mouth = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    mouth.setAttribute("d", "M 40 55 Q 50 50 60 55");
+    mouth.setAttribute("stroke", "#000");
+    mouth.setAttribute("stroke-width", "3");
+    mouth.setAttribute("fill", "none");
+    svg.appendChild(mouth);
+
+    svgWrap.appendChild(svg);
+  }
+
+  box.appendChild(svgWrap);
+
+  const title = document.createElement("div");
+  title.textContent = isCorrect
+    ? level.result.correct.title
+    : level.result.wrong.title;
+  title.style.fontSize = "28px";
+  title.style.fontWeight = "bold";
+  title.style.marginBottom = "12px";
+  box.appendChild(title);
+
+  const infoBox = document.createElement("div");
+  infoBox.style.borderRadius = "18px";
+  infoBox.style.padding = "12px";
+  infoBox.style.textAlign = "left";
+  infoBox.style.fontSize = "12px";
+  infoBox.style.lineHeight = "1.4";
+  infoBox.style.background = isCorrect ? "#90EE90" : "#FFB6C1";
+  infoBox.style.color = "#000";
 
   const subtitle = document.createElement("div");
-  subtitle.style.fontSize = "16px";
-  subtitle.style.fontWeight = "700";
-  subtitle.style.fontFamily =
-    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-  subtitle.style.marginBottom = "10px";
-  subtitle.textContent = success
-    ? "Почему выбор верный:"
-    : "Почему выбор неверный:";
-  box.appendChild(subtitle);
+  subtitle.textContent = isCorrect
+    ? level.result.correct.subtitle
+    : level.result.wrong.subtitle;
+  subtitle.style.fontWeight = "bold";
+  subtitle.style.marginBottom = "6px";
+  infoBox.appendChild(subtitle);
 
-  const ul = document.createElement("ul");
-  ul.style.margin = "0";
-  ul.style.paddingLeft = "18px";
-  ul.style.fontSize = "14px";
-  ul.style.fontFamily = subtitle.style.fontFamily;
-  const bullets = success ? level.successBullets : level.failBullets;
-  bullets.forEach((t) => {
-    const li = document.createElement("li");
-    li.textContent = t;
-    ul.appendChild(li);
+  const reasons = isCorrect
+    ? level.result.correct.reasons
+    : level.result.wrong.reasons;
+
+  reasons.forEach((r) => {
+    const line = document.createElement("div");
+    line.textContent = "✓ " + r;
+    infoBox.appendChild(line);
   });
-  box.appendChild(ul);
 
+  box.appendChild(infoBox);
+
+  chat.appendChild(box);
+
+  // Кнопки внизу
+  footer.innerHTML = "";
   const btn = document.createElement("button");
-  btn.textContent =
-    currentLevelIndex < LEVELS.length - 1
-      ? "Далее к следующему уровню ▶︎"
-      : "Сыграть ещё раз 🔁";
-  btn.style.marginTop = "18px";
-  btn.style.padding = "10px 18px";
+  btn.style.marginTop = "12px";
+  btn.style.padding = "8px 14px";
   btn.style.borderRadius = "999px";
   btn.style.border = "none";
   btn.style.cursor = "pointer";
-  btn.style.fontSize = "15px";
-  btn.style.fontWeight = "600";
-  btn.style.fontFamily = subtitle.style.fontFamily;
-  btn.style.backgroundColor = getThemeColor(
-    "--tg-theme-button-color",
-    "#3390ec"
-  );
-  btn.style.color = getThemeColor(
-    "--tg-theme-button-text-color",
-    "#fff"
-  );
-  btn.onclick = () => {
-    if (currentLevelIndex < LEVELS.length - 1) {
-      root.innerHTML = "";
-      initLayout();
-      startLevel(currentLevelIndex + 1);
-    } else {
-      root.innerHTML = "";
-      initLayout();
-      startLevel(0);
-    }
-  };
-  wrap.appendChild(btn);
+  btn.style.fontFamily = "'JetBrains Mono', 'Fira Code', monospace";
+  btn.style.background = "#3390ec";
+  btn.style.color = "#fff";
+  btn.style.fontSize = "12px";
+
+  const isLastLevel = currentLevelIndex === levels.length - 1;
+
+  if (isLastLevel) {
+    btn.textContent = "Пройти игру заново";
+    btn.onclick = () => startLevel(0);
+  } else {
+    btn.textContent = "Следующий уровень";
+    btn.onclick = () => startLevel(currentLevelIndex + 1);
+  }
+
+  footer.appendChild(btn);
 }
 
-// --- Старт игры ---
-initLayout();
-startLevel(0);
+// ---------- ЗАПУСК ---------- //
+
+window.addEventListener("DOMContentLoaded", () => {
+  createLayout();
+  startLevel(0);
+});
