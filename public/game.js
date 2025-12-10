@@ -1,197 +1,440 @@
-// ===============================
-//  FREELANCING MINI-GAME JS
-// ===============================
+// ======================================================
+//  FREELANCE CHAT GAME — PART 1/3
+//  UI, BASE ENGINE, MESSAGE RENDERING
+// ======================================================
 
-// Telegram WebApp integration
+// Telegram WebApp init
 const tg = window.Telegram?.WebApp;
 if (tg) {
     tg.expand();
     tg.ready();
 }
 
+// GLOBAL ELEMENTS
+let app, chatBox, buttonBox, titleBox, avatarBox, nameBox, hintBox;
+
+function autoScroll() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
 // ===============================
-//  GAME DATA
+// CREATE MAIN UI LAYOUT
+// ===============================
+function initUI() {
+    document.body.innerHTML = "";
+    document.body.style.margin = "0";
+    document.body.style.background = "#d7d7dc";
+    document.body.style.fontFamily = "'LCD 16x2 Display', monospace";
+
+    app = document.createElement("div");
+    app.style.maxWidth = "420px";
+    app.style.margin = "0 auto";
+    app.style.padding = "20px";
+    app.style.display = "flex";
+    app.style.flexDirection = "column";
+    document.body.appendChild(app);
+
+    // TITLE
+    titleBox = document.createElement("h2");
+    titleBox.style.textAlign = "center";
+    titleBox.style.marginBottom = "8px";
+    app.appendChild(titleBox);
+
+    // AVATAR + NAME
+    const header = document.createElement("div");
+    header.style.textAlign = "center";
+    header.style.marginBottom = "12px";
+
+    avatarBox = document.createElement("div");
+    avatarBox.style.fontSize = "48px";
+    avatarBox.style.marginBottom = "4px";
+    header.appendChild(avatarBox);
+
+    nameBox = document.createElement("div");
+    nameBox.style.fontSize = "16px";
+    nameBox.style.fontWeight = "600";
+    header.appendChild(nameBox);
+
+    app.appendChild(header);
+
+    // CHAT BOX
+    chatBox = document.createElement("div");
+    chatBox.style.background = "#eef0f5";
+    chatBox.style.height = "320px";
+    chatBox.style.borderRadius = "20px";
+    chatBox.style.padding = "12px";
+    chatBox.style.overflowY = "auto";
+    chatBox.style.display = "flex";
+    chatBox.style.flexDirection = "column";
+    chatBox.style.gap = "8px";
+    chatBox.style.boxShadow = "inset 0 0 6px rgba(0,0,0,0.1)";
+    app.appendChild(chatBox);
+
+    // HINT / ERROR
+    hintBox = document.createElement("div");
+    hintBox.style.minHeight = "20px";
+    hintBox.style.marginTop = "8px";
+    hintBox.style.fontSize = "13px";
+    hintBox.style.color = "#c0392b";
+    hintBox.style.textAlign = "center";
+    app.appendChild(hintBox);
+
+    // BUTTON AREA
+    buttonBox = document.createElement("div");
+    buttonBox.style.marginTop = "12px";
+    buttonBox.style.display = "flex";
+    buttonBox.style.flexDirection = "column";
+    buttonBox.style.gap = "8px";
+    app.appendChild(buttonBox);
+}
+
+// ===============================
+// MESSAGE BUBBLES
 // ===============================
 
+function addMessage(text, from = "client") {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.width = "100%";
+
+    const bubble = document.createElement("div");
+    bubble.textContent = text;
+    bubble.style.padding = "10px 14px";
+    bubble.style.borderRadius = "16px";
+    bubble.style.fontSize = "15px";
+    bubble.style.maxWidth = "75%";
+    bubble.style.lineHeight = "1.35";
+
+    if (from === "client") {
+        row.style.justifyContent = "flex-start";
+        bubble.style.background = "#B0C8FF";
+        bubble.style.border = "1px solid #8EA6D8";
+    } else {
+        row.style.justifyContent = "flex-end";
+        bubble.style.background = "#A2E3B7";
+        bubble.style.border = "1px solid #82C796";
+    }
+
+    row.appendChild(bubble);
+    chatBox.appendChild(row);
+    autoScroll();
+}
+
+// ===============================
+// BUTTONS
+// ===============================
+
+function clearButtons() {
+    buttonBox.innerHTML = "";
+}
+
+function renderButtons(options, callback) {
+    clearButtons();
+
+    options.forEach((label, idx) => {
+        const btn = document.createElement("button");
+        btn.textContent = label;
+        btn.style.width = "100%";
+        btn.style.padding = "12px";
+        btn.style.borderRadius = "14px";
+        btn.style.border = "none";
+        btn.style.background = "#D9D9D9";
+        btn.style.fontFamily = "'LCD 16x2 Display', monospace";
+        btn.style.fontSize = "15px";
+        btn.style.cursor = "pointer";
+
+        btn.addEventListener("click", () => callback(idx));
+
+        buttonBox.appendChild(btn);
+    });
+}
+
+function disableButtons() {
+    Array.from(buttonBox.querySelectorAll("button")).forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+        btn.style.cursor = "default";
+    });
+}
+
+// ===============================
+// FINISH SCREEN (STAR ⭐ OR SKULL 💀)
+// ===============================
+
+function showFinishScreen(success, onRestart, onNext) {
+    document.body.innerHTML = "";
+
+    const wrap = document.createElement("div");
+    wrap.style.maxWidth = "420px";
+    wrap.style.margin = "0 auto";
+    wrap.style.padding = "32px 20px";
+    wrap.style.textAlign = "center";
+    document.body.appendChild(wrap);
+
+    const icon = document.createElement("div");
+    icon.style.fontSize = "80px";
+    icon.style.marginBottom = "12px";
+    icon.textContent = success ? "⭐" : "💀";
+    wrap.appendChild(icon);
+
+    const title = document.createElement("div");
+    title.style.fontSize = "32px";
+    title.style.fontWeight = "900";
+    title.style.marginBottom = "20px";
+    title.textContent = success ? "УСПЕХ!" : "ПРОВАЛ!";
+    wrap.appendChild(title);
+
+    const explanation = document.createElement("div");
+    explanation.style.background = success ? "#D4F8D4" : "#FFD6D6";
+    explanation.style.borderRadius = "14px";
+    explanation.style.padding = "14px";
+    explanation.style.fontSize = "15px";
+    explanation.style.lineHeight = "1.4";
+    explanation.style.marginBottom = "20px";
+
+    explanation.innerHTML = success
+        ? "✓ Клиент подходящий<br>✓ Вы верно оценили ситуацию<br>✓ Отличная работа!"
+        : "✓ Клиент был проблемным<br>✓ Вы неправильно оценили риски<br>✓ Попробуйте ещё раз!";
+
+    wrap.appendChild(explanation);
+
+    // Restart button
+    const retry = document.createElement("button");
+    retry.textContent = "Пройти уровень заново 🔁";
+    retry.style.display = "block";
+    retry.style.width = "100%";
+    retry.style.padding = "12px";
+    retry.style.borderRadius = "14px";
+    retry.style.border = "none";
+    retry.style.background = "#D9D9D9";
+    retry.style.fontFamily = "'LCD 16x2 Display', monospace";
+    retry.style.fontSize = "15px";
+    retry.style.marginBottom = "10px";
+    retry.onclick = onRestart;
+    wrap.appendChild(retry);
+
+    // Next level button
+    if (onNext) {
+        const next = document.createElement("button");
+        next.textContent = "Следующий уровень ▶️";
+        next.style.display = "block";
+        next.style.width = "100%";
+        next.style.padding = "12px";
+        next.style.borderRadius = "14px";
+        next.style.border = "none";
+        next.style.background = "#D9D9D9";
+        next.style.fontFamily = "'LCD 16x2 Display', monospace";
+        next.style.fontSize = "15px";
+        next.onclick = onNext;
+        wrap.appendChild(next);
+    }
+}
+// ======================================================
+//  FREELANCE CHAT GAME — PART 2/3
+//  LEVEL DEFINITIONS (ALL 5 LEVELS)
+// ======================================================
+
+// Each step: 
+// {
+//    buttons: [ "вариант1", "вариант2", ...],
+//    correct: index,
+//    dialog: [ { from: "user"|"client", text: "..." }, ... ],
+//    errors: [ "ошибка для варианта 0", null, "ошибка для варианта 2", ... ]
+// }
+
 const LEVELS = [
+
+    // ============================
+    //        LEVEL 1 — ЕЛЕНА
+    // ============================
     {
         id: 1,
         name: "Елена",
         avatar: "👩‍💼",
-        first: "Привет! Хочу заказать лендинг. Есть текст и структура, нужен дизайн + вёрстка.",
+        adequate: true,
+        firstMsg: "Привет! Хочу заказать лендинг. Есть текст и структура, нужен дизайн + вёрстка.",
 
         steps: [
             {
                 buttons: [
-                    "Здраствуйте! Как будете оплачивать? 💳",
-                    "Здраствуйте! Какой стиль вам ближе? 🎨",
-                    "Здраствуйте! Какие сроки и бюджет? 📅💰"
+                    "Здравствуйте! Как будете оплачивать? 💳",
+                    "Здравствуйте! Какой стиль вам ближе? 🎨",
+                    "Здравствуйте! Какие сроки и бюджет? 📅💰"
                 ],
                 correct: 2,
                 dialog: [
-                    { from: "user", text: "Здраствуйте! Какие сроки и бюджет? 📅💰" },
+                    { from: "user", text: "Здравствуйте! Какие сроки и бюджет? 📅💰" },
                     { from: "client", text: "10 дней, оплата по этапам. Если всё пойдёт хорошо — продолжим работу. 🙂" }
                 ],
                 errors: [
                     "Рано обсуждать оплату — сначала нужны вводные. ⚠️",
-                    "Стиль подберём позже, пока важнее сроки и бюджет. ⚠️",
+                    "Стиль пока не важен — нужно уточнить сроки и бюджет. ⚠️",
                     null
                 ]
             }
-        ],
-        adequate: true
+        ]
     },
 
+    // ============================
+    //        LEVEL 2 — ИГОРЬ
+    // ============================
     {
         id: 2,
         name: "Игорь",
         avatar: "🧑‍💻",
-        first: "Добрый день! Нужен сайт-портфолио, есть фото и частичные тексты. Хочу за 3 дня и «чтоб вау».",
+        adequate: true,
+        firstMsg: "Добрый день! Нужен сайт-портфолио. Есть фото и частичные тексты. Хочу за 3 дня и «чтоб вау».",
 
         steps: [
             {
                 buttons: [
-                    "Здраствуйте! Уточним объём работ, сроки и бюджет. ✍️",
-                    "Здраствуйте! За 3 дня сделаем всё, будет вау! 😅",
-                    "Здраствуйте! Начнём с дизайна, тексты потом. ✏️"
+                    "Здравствуйте! Уточним объём работ, сроки и бюджет. ✍️",
+                    "Здравствуйте! Сделаем всё за 3 дня, будет вау! 😅",
+                    "Здравствуйте! Начнём с дизайна, тексты потом. ✏️"
                 ],
                 correct: 0,
                 dialog: [
-                    { from: "user", text: "Здраствуйте! Уточним объём работ, сроки и бюджет. ✍️" },
+                    { from: "user", text: "Здравствуйте! Уточним объём работ, сроки и бюджет. ✍️" },
                     { from: "client", text: "Хмм… ладно, давай реалистичнее — неделя и по этапам. 😎" }
                 ],
                 errors: [
                     null,
-                    "Нереальные ожидания → срыв сроков. ⚠️",
-                    "Сначала структура и объём, не дизайн. ⚠️"
+                    "Нереальные обещания — прямой путь к срыву сроков. ⚠️",
+                    "Нельзя начинать с дизайна без структуры. ⚠️"
                 ]
             }
-        ],
-        adequate: true
+        ]
     },
 
+    // ============================
+    //        LEVEL 3 — АННА
+    // ============================
     {
         id: 3,
         name: "Анна",
         avatar: "👩‍🎤",
-        first: "Нужен интернет-магазин одежды. Ассортимент огромный, интеграции обязательны. Бюджет минимальный, срок — неделя.",
+        adequate: false,
+        firstMsg: "Нужен интернет-магазин одежды. Срок — неделя. Интеграции обязательны. Бюджет минимальный.",
 
         steps: [
             {
                 buttons: [
-                    "Здраствуйте! Давайте разберёмся с объёмом и интеграциями. 🧩",
-                    "Здраствуйте! Сделаем всё за неделю, не переживайте. 😉",
-                    "Здраствуйте! Возьмём шаблон и быстро соберём. 🪛"
+                    "Здравствуйте! Давайте обсудим интеграции и объём. 🧩",
+                    "Здравствуйте! Сделаем всё за неделю! 😉",
+                    "Здравствуйте! Возьмём шаблон, будет быстро. 🪛"
                 ],
                 correct: 0,
                 dialog: [
-                    { from: "user", text: "Здраствуйте! Давайте разберёмся с объёмом и интеграциями. 🧩" },
-                    { from: "client", text: "Объём большой, интеграции нужны все, сроки менять не хочу. 😐" }
+                    { from: "user", text: "Здравствуйте! Давайте обсудим интеграции и объём. 🧩" },
+                    { from: "client", text: "Объём большой, интеграции нужны ВСЕ, сроки менять не хочу. 😐" }
                 ],
                 errors: [
                     null,
-                    "Обещать невозможное — прямой путь в конфликт. ⚠️",
-                    "Шаблон не решает вопросы интеграций. 🔧"
+                    "Нельзя обещать невозможное — это токсично. ❌",
+                    "Шаблон не решает вопрос интеграций. 🔧"
                 ]
             },
-
             {
                 buttons: [
-                    "Предлагаю MVP — минимум сейчас, остальное позже. 📦",
-                    "Попробуем сделать максимум за неделю. 🤷‍♀️",
-                    "Если всё так срочно, делайте сами. 😬"
+                    "Предлагаю MVP — главное сейчас, остальное позже. 📦",
+                    "Ладно, постараемся влезть в сроки. 🤷‍♀️",
+                    "Раз так, делайте тогда сами. 😬"
                 ],
                 correct: 0,
                 dialog: [
-                    { from: "user", text: "Предлагаю MVP — минимум сейчас, остальное позже. 📦" },
-                    { from: "client", text: "Нет. Хочу как у крупных брендов, но в мои сроки и бюджет. 😤" }
+                    { from: "user", text: "Предлагаю MVP — главное сейчас, остальное позже. 📦" },
+                    { from: "client", text: "Нет. Хочу всё, как у крупных брендов, в мои сроки и бюджет. 😤" }
                 ],
                 errors: [
                     null,
-                    "Снова соглашаться на невыполнимое нельзя. ❌",
+                    "Нереалистично — нельзя так соглашаться. ⚠️",
                     "Пассивная агрессия не поможет. ⚠️"
                 ]
             }
-        ],
-        adequate: false
+        ]
     },
 
+    // ============================
+    //        LEVEL 4 — МАКСИМ
+    // ============================
     {
         id: 4,
         name: "Максим",
         avatar: "🧔",
-        first: "Нужен лендинг. Я люблю всё контролировать — правки могу слать хоть ночью, мне важно «идеально».",
+        adequate: false,
+        firstMsg: "Нужен лендинг. Я люблю всё контролировать — правки могу слать хоть ночью. Хочу идеально.",
 
         steps: [
             {
                 buttons: [
-                    "Здраствуйте! Договоримся о правках и рамках. 📝",
-                    "Здраствуйте! Могу править хоть каждый час. 💪",
-                    "Здраствуйте! Вы скажете нравится или нет, и всё. 🎲"
+                    "Здравствуйте! Договоримся о правках и рамках. 📝",
+                    "Здравствуйте! Могу править хоть каждый час. 💪",
+                    "Здравствуйте! Вы скажете нравится или нет — и всё. 🎲"
                 ],
                 correct: 0,
                 dialog: [
-                    { from: "user", text: "Здраствуйте! Договоримся о правках и рамках. 📝" },
+                    { from: "user", text: "Здравствуйте! Договоримся о правках и рамках. 📝" },
                     { from: "client", text: "Мне рамки не нравятся. Я хочу менять всё в любой момент. ⚡️" }
                 ],
                 errors: [
                     null,
-                    "Работа 24/7 приведёт к выгоранию. 🔥",
-                    "Без критериев «нравится / не нравится» процесс бесконечный. ♾️"
+                    "Работа 24/7 = выгорание. 🔥",
+                    "Без критериев — бесконечные правки. ♾️"
                 ]
             },
-
             {
                 buttons: [
-                    "Ограничим правки и время ответов, иначе будет хаос. ⏰",
-                    "Подстроюсь под ваш график. 🙃",
-                    "Обойдёмся без правил. 💬"
+                    "Ограничим время ответов и правок. ⏰",
+                    "Подстроюсь под ваш ритм. 🙃",
+                    "Давайте без правил. 💬"
                 ],
                 correct: 0,
                 dialog: [
-                    { from: "user", text: "Ограничим правки и время ответов, иначе будет хаос. ⏰" },
+                    { from: "user", text: "Ограничим время ответов и правок. ⏰" },
                     { from: "client", text: "Если нужны ограничения — вы мне не подходите. Хочу, чтобы исполнитель был всегда на связи. 😠" }
                 ],
                 errors: [
                     null,
                     "Подстраиваться под хаос нельзя. ⚠️",
-                    "Правил нет → хаос. ⚡️"
+                    "Без правил будет хаос. ⚡️"
                 ]
             }
-        ],
-        adequate: false
+        ]
     },
 
+    // ============================
+    //        LEVEL 5 — СЕРГЕЙ
+    // ============================
     {
         id: 5,
         name: "Сергей",
         avatar: "🧑‍💼",
-        first: "Запускаем курс. Нужен лендинг, email-цепочка и баннеры. Бюджет ограничен, хочу долгосрочное сотрудничество.",
+        adequate: true,
+        firstMsg: "Запускаем курс. Нужен лендинг, email-цепочка и баннеры. Бюджет ограничен, но долгосрочно.",
 
         steps: [
             {
                 buttons: [
-                    "Здраствуйте! Определим приоритеты: что нужно к запуску? 🎯",
-                    "Здраствуйте! Сделаем всё сразу. 🔥",
-                    "Здраствуйте! Я делаю только лендинг. 🙈"
+                    "Здравствуйте! Определим приоритеты к запуску. 🎯",
+                    "Здравствуйте! Сделаем всё сразу! 🔥",
+                    "Здравствуйте! Я делаю только лендинг. 🙈"
                 ],
                 correct: 0,
                 dialog: [
-                    { from: "user", text: "Определим приоритеты: что нужно к запуску? 🎯" },
+                    { from: "user", text: "Здравствуйте! Определим приоритеты к запуску. 🎯" },
                     { from: "client", text: "Лендинг и пара писем в первую очередь. Остальное позже. 🙂" }
                 ],
                 errors: [
                     null,
                     "Так можно сорвать сроки. ⚠️",
-                    "Важно обсуждать приоритеты, а не сразу отрезать задачи. ✂️"
+                    "Не стоит так резко отказываться. ✂️"
                 ]
             },
-
             {
                 buttons: [
                     "Фиксируем объём на первый спринт. 📚",
                     "Давайте без договорённостей. 🌪️",
-                    "Будем всё обсуждать голосом. 🎙️"
+                    "Будем обсуждать всё голосом. 🎙️"
                 ],
                 correct: 0,
                 dialog: [
@@ -200,16 +443,15 @@ const LEVELS = [
                 ],
                 errors: [
                     null,
-                    "Без фиксации объёма проект растянется. ⏳",
-                    "Голосом удобно, но без фиксации легко всё забыть. ⚠️"
+                    "Без фиксации объёма проект развалится. ⏳",
+                    "Удобно, но легко забыть. ⚠️"
                 ]
             },
-
             {
                 buttons: [
-                    "Пакет: лендинг + базовая email-цепочка. Баннеры позже. 🧩",
+                    "Пакет: лендинг + email-цепочка. 🧩",
                     "Делаю только лендинг. 😐",
-                    "Отложим всё до продаж. 😅"
+                    "Давайте отложим всё. 😅"
                 ],
                 correct: 0,
                 dialog: [
@@ -218,216 +460,124 @@ const LEVELS = [
                 ],
                 errors: [
                     null,
-                    "Резко отрезать задачи — не лучшая стратегия. ⚠️",
-                    "Если всё отложить — старт сорвётся. 🚫"
+                    "Слишком узко для долгосрочного проекта. ⚠️",
+                    "Отложить всё — значит сорвать старт. 🚫"
                 ]
             }
-        ],
-        adequate: true
+        ]
     }
 ];
+// ======================================================
+//  FREELANCE CHAT GAME — PART 3/3
+//  GAME LOGIC (STATE MACHINE + LEVEL FLOW)
+// ======================================================
 
-// ===============================
-//  UI ELEMENTS
-// ===============================
+let currentLevel = 0;
+let currentStep = 0;
 
-let chatBox, btnBox, titleEl, avatarEl, nameEl, hintEl;
+// Start level
+function startLevel(levelIndex) {
+    currentLevel = levelIndex;
+    currentStep = 0;
 
-function initUI() {
-    document.body.innerHTML = "";
-    document.body.style.margin = "0";
-    document.body.style.fontFamily = "system-ui, sans-serif";
+    const L = LEVELS[currentLevel];
 
-    const app = document.createElement("div");
-    app.style.maxWidth = "420px";
-    app.style.margin = "0 auto";
-    app.style.padding = "20px";
-    document.body.appendChild(app);
+    initUI();
 
-    titleEl = document.createElement("h2");
-    titleEl.style.textAlign = "center";
-    app.appendChild(titleEl);
+    // Set header
+    titleBox.textContent = `Уровень ${L.id}: ${L.name}`;
+    avatarBox.textContent = L.avatar;
+    nameBox.textContent = L.name;
 
-    const av = document.createElement("div");
-    av.style.textAlign = "center";
-    avatarEl = document.createElement("div");
-    avatarEl.style.fontSize = "48px";
-    av.appendChild(avatarEl);
-    nameEl = document.createElement("div");
-    nameEl.style.marginTop = "4px";
-    nameEl.style.fontWeight = "600";
-    av.appendChild(nameEl);
-    app.appendChild(av);
+    // Start message
+    addMessage(L.firstMsg, "client");
 
-    chatBox = document.createElement("div");
-    chatBox.style.background = "#eef0f5";
-    chatBox.style.height = "280px";
-    chatBox.style.borderRadius = "16px";
-    chatBox.style.padding = "12px";
-    chatBox.style.overflowY = "auto";
-    chatBox.style.marginTop = "12px";
-    app.appendChild(chatBox);
-
-    hintEl = document.createElement("div");
-    hintEl.style.color = "#c0392b";
-    hintEl.style.minHeight = "20px";
-    hintEl.style.margin = "6px";
-    app.appendChild(hintEl);
-
-    btnBox = document.createElement("div");
-    btnBox.style.marginTop = "12px";
-    app.appendChild(btnBox);
+    // Render step 0
+    setTimeout(() => renderStep(), 500);
 }
 
-function addMsg(text, from) {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.marginBottom = "6px";
-    row.style.justifyContent = from === "user" ? "flex-end" : "flex-start";
+// Render one step of the level
+function renderStep() {
+    clearButtons();
+    hintBox.textContent = "";
 
-    const msg = document.createElement("div");
-    msg.style.padding = "8px 12px";
-    msg.style.borderRadius = "14px";
-    msg.style.maxWidth = "75%";
-    msg.style.fontSize = "14px";
+    const L = LEVELS[currentLevel];
+    const step = L.steps[currentStep];
 
-    if (from === "client") {
-        msg.style.background = "#cde3ff";
-        msg.style.border = "1px solid #99b9ff";
-    } else {
-        msg.style.background = "#c8f7c5";
-        msg.style.border = "1px solid #9adf90";
+    // No step → time to pick adequate / not adequate
+    if (!step) {
+        return renderFinalDecision();
     }
 
-    msg.textContent = text;
-    row.appendChild(msg);
-    chatBox.appendChild(row);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-function buttonList(buttons, onSelect) {
-    btnBox.innerHTML = "";
-    buttons.forEach((label, i) => {
-        const btn = document.createElement("button");
-        btn.textContent = label;
-        btn.style.width = "100%";
-        btn.style.marginBottom = "6px";
-        btn.style.padding = "10px";
-        btn.style.borderRadius = "12px";
-        btn.style.border = "2px solid #000";
-        btn.style.background = "#fff";
-        btn.onclick = () => onSelect(i);
-        btnBox.appendChild(btn);
-    });
-}
-
-// ===============================
-//  GAME LOGIC
-// ===============================
-
-let levelIndex = 0;
-let stepIndex = 0;
-
-function startLevel(i) {
-    levelIndex = i;
-    stepIndex = 0;
-
-    const L = LEVELS[i];
-    titleEl.textContent = `Уровень ${L.id}: ${L.name}`;
-    avatarEl.textContent = L.avatar;
-    nameEl.textContent = L.name;
-
-    chatBox.innerHTML = "";
-    addMsg(L.first, "client");
-
-    renderStep();
-}
-
-function renderStep() {
-    const L = LEVELS[levelIndex];
-    const step = L.steps[stepIndex];
-    if (!step) return finalChoice();
-
-    hintEl.textContent = "";
-
-    buttonList(step.buttons, (chosenIndex) => {
-        if (chosenIndex !== step.correct) {
-            hintEl.textContent = step.errors[chosenIndex];
+    renderButtons(step.buttons, (choiceIndex) => {
+        if (choiceIndex !== step.correct) {
+            hintBox.textContent = step.errors[choiceIndex];
             return;
         }
 
-        step.dialog.forEach((rep, i) =>
-            setTimeout(
-                () => addMsg(rep.text, rep.from),
-                i * 500
-            )
-        );
-
-        stepIndex++;
-        setTimeout(renderStep, step.dialog.length * 500 + 400);
+        // Correct choice
+        disableButtons();
+        playDialog(step.dialog);
     });
 }
 
-function finalChoice() {
-    buttonList(
+// Play dialog sequence for one step
+function playDialog(sequence) {
+    let delay = 0;
+
+    sequence.forEach((replica, i) => {
+        setTimeout(() => {
+            addMessage(replica.text, replica.from);
+        }, delay);
+        delay += 550;
+    });
+
+    // After dialog, move to next step
+    setTimeout(() => {
+        currentStep++;
+        renderStep();
+    }, delay + 300);
+}
+
+// Final decision buttons (adequate/not adequate)
+function renderFinalDecision() {
+    clearButtons();
+    hintBox.textContent = "";
+
+    renderButtons(
         ["Клиент адекватный ✅", "Клиент неадекватный ❌"],
         (choice) => {
-            const L = LEVELS[levelIndex];
-            const player = choice === 0;
-            const correct = player === L.adequate;
+            disableButtons();
 
-            chatBox.innerHTML = "";
-            addMsg(
-                player
-                    ? "Считаю клиента адекватным. 🙂"
-                    : "Считаю клиента неадекватным. 🚪",
-                "user"
-            );
+            const L = LEVELS[currentLevel];
+            const playerThinksAdequate = choice === 0;
+            const correct = playerThinksAdequate === L.adequate;
 
-            setTimeout(() => showFinal(correct), 700);
+            // Client reacts
+            setTimeout(() => {
+                addMessage(
+                    playerThinksAdequate
+                        ? "Отлично! Я готов работать с вами дальше. 🤝"
+                        : "К сожалению, я не смогу продолжить работу. 😔",
+                    "client"
+                );
+            }, 400);
+
+            // Show finish screen
+            setTimeout(() => {
+                showFinishScreen(
+                    correct,
+                    () => startLevel(currentLevel),
+                    currentLevel < LEVELS.length - 1
+                        ? () => startLevel(currentLevel + 1)
+                        : null
+                );
+            }, 1200);
         }
     );
 }
 
-function showFinal(success) {
-    document.body.innerHTML = "";
-
-    const wrap = document.createElement("div");
-    wrap.style.maxWidth = "420px";
-    wrap.style.margin = "0 auto";
-    wrap.style.padding = "40px 20px";
-    wrap.style.textAlign = "center";
-    document.body.appendChild(wrap);
-
-    const title = document.createElement("div");
-    title.style.fontSize = "38px";
-    title.style.fontWeight = "900";
-    title.style.marginBottom = "20px";
-    title.textContent = success ? "УСПЕХ!" : "ПРОВАЛ!";
-    wrap.appendChild(title);
-
-    const btn = document.createElement("button");
-    btn.style.padding = "14px 20px";
-    btn.style.fontSize = "16px";
-    btn.style.borderRadius = "12px";
-    btn.style.border = "none";
-    btn.style.cursor = "pointer";
-    btn.textContent =
-        levelIndex < LEVELS.length - 1
-            ? "Следующий уровень ▶️"
-            : "Сыграть снова 🔁";
-    btn.onclick = () => {
-        initUI();
-        startLevel(
-            levelIndex < LEVELS.length - 1 ? levelIndex + 1 : 0
-        );
-    };
-    wrap.appendChild(btn);
-}
-
-// ===============================
-//  START
-// ===============================
-
-initUI();
-startLevel(0);
+// Start the whole game
+window.addEventListener("DOMContentLoaded", () => {
+    startLevel(0);
+});
