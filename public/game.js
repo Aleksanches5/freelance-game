@@ -726,17 +726,20 @@ function showResultScreen(level, success) {
     btn.onmouseleave = () => (btn.style.opacity = "1");
 
     btn.onclick = () => {
-        root.innerHTML = "";
-        initLayout();
-        startLevel(success ? level.id : level.id);
-    };
+    root.innerHTML = "";
+    initLayout();
 
-    wrap.appendChild(btn);
-}
+    if (currentLevelIndex < LEVELS.length - 1) {
+        startLevel(currentLevelIndex + 1);
+    } else {
+        startLevel(0);
+    }
+};
+
 
 // =======================================================
 //  СТАРТ
 // =======================================================
 
 initLayout();
-startLevel(0);
+startLevel(0);}
