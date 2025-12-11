@@ -2,7 +2,8 @@
 // Мини-игра про фриланс с 5 уровнями (vanilla JS)
 
 // --- Telegram WebApp интеграция ---
-const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const tg =
+  window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 if (tg) {
   tg.expand();
   tg.ready();
@@ -43,26 +44,31 @@ const LEVELS = [
           },
           {
             from: "client",
-            text: "10 дней, оплата по этапам. Если всё пойдёт хорошо — продолжим работу. 🙂"
+            text: "10 дней, оплата по этапам. Если всё ок — буду работать с тобой дальше. 🙂"
           }
         ]
       }
     ],
-    closingTexts: {
-      correct: "Отлично, я готов продолжать работу с таким клиентом. 🤝",
-      wrong:
-        "Кажется, я не до конца прочитал сигналы и мог лучше оценить ситуацию. 🤔"
-    },
     successBullets: [
       "Сначала уточнил(а) сроки и бюджет. 🎯",
       "Не перепрыгнул(а) сразу к оплате или стилю. 🧠",
       "Сформировал(а) рабочие ожидания по проекту. 🤝"
     ],
     failBullets: [
-      "Фокус на деталях вместо общей картинки усложняет старт. 🧩",
+      "Фокус на деталях вместо общей картинки. 🧩",
       "Сложнее оценить риски и объём работ. ⚠️",
       "Клиенту важна уверенность, что ты понимаешь задачу. 💬"
-    ]
+    ],
+    closingTexts: {
+      goodAdequate:
+        "Хорошо, я готов работать дальше! 🤝",
+      goodNotAdequate:
+        "К сожалению, я не смогу работать по таким условиям. 🚪",
+      badAdequate:
+        "Наверное, я зря насторожился — условия выглядели вполне рабочими. 🙂",
+      badNotAdequate:
+        "Я слишком оптимистично оценил(а) ситуацию и пропустил(а) красные флаги. 😅"
+    }
   },
 
   // ---------- УРОВЕНЬ 2 ----------
@@ -99,11 +105,6 @@ const LEVELS = [
         ]
       }
     ],
-    closingTexts: {
-      correct: "Класс, с таким подходом есть шанс на долгосрочное сотрудничество. 🤝",
-      wrong:
-        "Я недооценил(а) важность реалистичных ожиданий и упустил(а) хорошего клиента. 😕"
-    },
     successBullets: [
       "Помог(ла) клиенту перейти от фантазий к реалистичным срокам. 🕒",
       "Сохранил(а) фокус на структуре и объёме работ. 🧱",
@@ -112,8 +113,18 @@ const LEVELS = [
     failBullets: [
       "Соглашение на нереальные ожидания ведёт к срывам сроков. ⏰",
       "Отсутствие чётких рамок по объёму и бюджету — путь к конфликтам. ⚠️",
-      "Клиенту нужна экспертность, а не притворное всемогущество. 🎭"
-    ]
+      "Клиенту нужна экспертность, а не притворное всемогущества. 🎭"
+    ],
+    closingTexts: {
+      goodAdequate:
+        "Отлично, формат реалистичный, можно планировать спринты. 🤝",
+      goodNotAdequate:
+        "Такие вводные — слишком рискованная история, лучше вежливо отказаться. 🚪",
+      badAdequate:
+        "Я немного перестраховался(лась) — с такими условиями можно было работать. 🙂",
+      badNotAdequate:
+        "Мне стоило жёстче отстоять рамки, чтобы не уйти в выгорание. 😵‍💫"
+    }
   },
 
   // ---------- УРОВЕНЬ 3 ----------
@@ -173,12 +184,6 @@ const LEVELS = [
         ]
       }
     ],
-    closingTexts: {
-      correct:
-        "К сожалению, с таким набором ожиданий работать нельзя — лучше честно отказаться. 🚪",
-      wrong:
-        "Я закрыл(а) глаза на красные флаги и, скорее всего, попал(а) бы в очень токсичный проект. 😵"
-    },
     successBullets: [
       "Увидел(а) красные флаги: завышенные ожидания при маленьком бюджете. 🚩",
       "Предложил(а) реалистичный формат (MVP), но клиент отказался. 🧱",
@@ -188,7 +193,17 @@ const LEVELS = [
       "Игнорирование красных флагов ведёт к выгоранию. 🔥",
       "Даже идеально выстроенный процесс не спасёт при провальных вводных. ⚠️",
       "Иногда лучший проект — тот, который ты вовремя не взял. 🚪"
-    ]
+    ],
+    closingTexts: {
+      goodAdequate:
+        "С такими вводными лучше не заходить в проект — берегу свои ресурсы. 🚪",
+      goodNotAdequate:
+        "Классно, что удалось договориться о реалистичных рамках и не влететь в ад. 🤝",
+      badAdequate:
+        "Я недооценил(а) риски — такой проект быстро съест все силы. 😵",
+      badNotAdequate:
+        "Можно было попробовать сохранить диалог и поискать более мягкий формат. 🙂"
+    }
   },
 
   // ---------- УРОВЕНЬ 4 ----------
@@ -248,11 +263,6 @@ const LEVELS = [
         ]
       }
     ],
-    closingTexts: {
-      correct: "Лучше сразу сказать «нет», чем жить в режиме бесконечных правок. 🚪",
-      wrong:
-        "Я, похоже, недооценил(а), насколько тяжёлым может быть такой формат работы. 😓"
-    },
     successBullets: [
       "Заметил(а), что клиент не готов к здоровым рамкам и хочет полного контроля. 🎛️",
       "Попробовал(а) договориться о правилах — клиент отказался. 🚧",
@@ -262,7 +272,17 @@ const LEVELS = [
       "Согласие жить в вечной готовности под правки разрушает личные границы. 🚨",
       "Клиент, который не признаёт рамок, редко доволен результатом. 😓",
       "Умение отказывать — часть профессионализма. 🧠"
-    ]
+    ],
+    closingTexts: {
+      goodAdequate:
+        "Лучше не заходить в историю, где нет границ и выходных. 🚪",
+      goodNotAdequate:
+        "Если договориться о правилах получается, это может быть нормальный рабочий союз. 🤝",
+      badAdequate:
+        "Я недооценил(а) нагрузку от бесконечных правок и отсутствия границ. 😵",
+      badNotAdequate:
+        "Возможно, я был(а) чересчур строг(а) — можно было попробовать мягче обсудить рамки. 🙂"
+    }
   },
 
   // ---------- УРОВЕНЬ 5 ----------
@@ -340,18 +360,11 @@ const LEVELS = [
           },
           {
             from: "client",
-            text:
-              "Звучит отлично, так нам будет проще планировать. Готов работать по такому формату. 🙌"
+            text: "Звучит отлично, так нам будет проще планировать. Готов работать по такому формату. 🙌"
           }
         ]
       }
     ],
-    closingTexts: {
-      correct:
-        "Супер, это клиент с адекватными ожиданиями — хороший кандидат на долгосрочное партнёрство. 🤝",
-      wrong:
-        "Я недооценил(а) потенциал этого клиента и рискую упустить классный проект. 😅"
-    },
     successBullets: [
       "Помог(ла) клиенту расставить приоритеты и не распыляться. 🎯",
       "Зафиксировал(а) объём и формат поддержки. 📋",
@@ -361,12 +374,22 @@ const LEVELS = [
       "Без приоритизации легко утонуть в задачах. 🌊",
       "Отказ от договорённостей делает даже адекватного клиента проблемным. ⚠️",
       "Важно видеть потенциальных долгосрочных партнёров. 🤝"
-    ]
+    ],
+    closingTexts: {
+      goodAdequate:
+        "Классный формат: понятные приоритеты и перспектива долгой работы. 🤝",
+      goodNotAdequate:
+        "Слишком много красных флагов — лучше сфокусироваться на других проектах. 🚪",
+      badAdequate:
+        "Я недооценил(а) потенциал клиента — это могло быть хорошее сотрудничество. 🙂",
+      badNotAdequate:
+        "Мне стоило чётче выстроить рамки и увидеть, что клиент на самом деле адекватный. 🧠"
+    }
   }
 ];
 
 // ----------------------------------------------------
-//                 ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ UI
+//         ГЛОБАЛЬНЫЕ ЭЛЕМЕНТЫ И СОСТОЯНИЕ
 // ----------------------------------------------------
 
 let root;
@@ -381,15 +404,15 @@ let currentLevelIndex = 0;
 let currentStepIndex = 0;
 
 // ----------------------------------------------------
-//               ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ UI
+//              ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ UI
 // ----------------------------------------------------
 
 function getThemeColor(varName, fallback) {
   if (!window.getComputedStyle) return fallback;
-  const v = getComputedStyle(document.documentElement).getPropertyValue(
-    varName
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue(varName) ||
+    fallback
   );
-  return v && v.trim() ? v.trim() : fallback;
 }
 
 function initLayout() {
@@ -401,14 +424,21 @@ function initLayout() {
     "#dcdde1"
   );
 
-  root = document.createElement("div");
+  root = document.getElementById("root");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "root";
+    document.body.appendChild(root);
+  }
+  root.innerHTML = "";
+
   root.style.minHeight = "100vh";
   root.style.display = "flex";
   root.style.justifyContent = "center";
-  root.style.alignItems = "center";
-  root.style.padding = "16px";
+  // ИЗМЕНЕНИЕ №1: прижимаем карточку ближе к верху
+  root.style.alignItems = "flex-start";
+  root.style.padding = "12px 16px 16px 16px";
   root.style.boxSizing = "border-box";
-  document.body.appendChild(root);
 
   const card = document.createElement("div");
   card.style.width = "100%";
@@ -422,23 +452,24 @@ function initLayout() {
   card.style.boxSizing = "border-box";
   root.appendChild(card);
 
-  // header
+  // Header
   const header = document.createElement("div");
   header.style.textAlign = "center";
-  header.style.marginBottom = "10px";
+  header.style.marginBottom = "12px";
   card.appendChild(header);
 
   headerTitleEl = document.createElement("div");
-  headerTitleEl.style.fontSize = "22px";
+  headerTitleEl.style.fontSize = "20px";
   headerTitleEl.style.fontWeight = "700";
   headerTitleEl.style.letterSpacing = "2px";
   headerTitleEl.style.textTransform = "uppercase";
+  headerTitleEl.style.marginBottom = "6px";
   headerTitleEl.style.fontFamily =
-    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace";
+    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
   headerTitleEl.style.color = getThemeColor("--tg-theme-text-color", "#111");
   header.appendChild(headerTitleEl);
 
-  // avatar
+  // Avatar
   const avatarWrap = document.createElement("div");
   avatarWrap.style.display = "flex";
   avatarWrap.style.flexDirection = "column";
@@ -447,15 +478,15 @@ function initLayout() {
   card.appendChild(avatarWrap);
 
   const avatarCircle = document.createElement("div");
-  avatarCircle.style.width = "72px";
-  avatarCircle.style.height = "72px";
+  avatarCircle.style.width = "74px";
+  avatarCircle.style.height = "74px";
   avatarCircle.style.borderRadius = "50%";
-  avatarCircle.style.backgroundColor = "#BDBCBC";
+  avatarCircle.style.backgroundColor = "#bdbcbc";
   avatarCircle.style.border = "1px solid #000";
   avatarCircle.style.display = "flex";
   avatarCircle.style.alignItems = "center";
   avatarCircle.style.justifyContent = "center";
-  avatarCircle.style.fontSize = "36px";
+  avatarCircle.style.fontSize = "34px";
   avatarCircle.style.marginBottom = "6px";
   avatarWrap.appendChild(avatarCircle);
 
@@ -463,7 +494,7 @@ function initLayout() {
   avatarCircle.appendChild(avatarEmojiEl);
 
   avatarNameEl = document.createElement("div");
-  avatarNameEl.style.fontSize = "15px";
+  avatarNameEl.style.fontSize = "14px";
   avatarNameEl.style.fontWeight = "600";
   avatarNameEl.style.letterSpacing = "1px";
   avatarNameEl.style.textTransform = "uppercase";
@@ -471,18 +502,18 @@ function initLayout() {
   avatarNameEl.style.color = getThemeColor("--tg-theme-hint-color", "#555");
   avatarWrap.appendChild(avatarNameEl);
 
-  // chat container
+  // Chat container
   chatContainer = document.createElement("div");
   chatContainer.style.flex = "1";
   chatContainer.style.padding = "12px";
   chatContainer.style.borderRadius = "24px";
-  chatContainer.style.backgroundColor = "#F5F5F7";
+  chatContainer.style.backgroundColor = "#f5f5f5";
   chatContainer.style.overflowY = "auto";
-  chatContainer.style.maxHeight = "58vh";
+  chatContainer.style.maxHeight = "60vh";
   chatContainer.style.boxSizing = "border-box";
   card.appendChild(chatContainer);
 
-  // hint
+  // Hint
   hintEl = document.createElement("div");
   hintEl.style.minHeight = "20px";
   hintEl.style.fontSize = "13px";
@@ -491,10 +522,10 @@ function initLayout() {
   hintEl.style.fontFamily = headerTitleEl.style.fontFamily;
   card.appendChild(hintEl);
 
-  // buttons container
+  // Buttons
   buttonsContainer = document.createElement("div");
   buttonsContainer.style.marginTop = "6px";
-  buttonsContainer.style.paddingTop = "8px";
+  buttonsContainer.style.paddingTop = "10px";
   buttonsContainer.style.borderTop = "2px solid rgba(0,0,0,0.08)";
   card.appendChild(buttonsContainer);
 }
@@ -516,27 +547,27 @@ function addMessage(text, from) {
   bubble.style.fontSize = "14px";
   bubble.style.lineHeight = "1.4";
   bubble.style.fontFamily =
-    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace";
+    "'LCD 16x2 Display', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
 
   if (from === "client") {
     bubble.style.backgroundColor = "#B0C8FF";
-    bubble.style.border = "2px solid #8FAEF5";
     bubble.style.color = "#000";
+    bubble.style.border = "1px solid #99b9ff";
   } else if (from === "user") {
     bubble.style.backgroundColor = "#A2E3B7";
-    bubble.style.border = "2px solid #78C58E";
     bubble.style.color = "#000";
+    bubble.style.border = "1px solid #7ccf94";
   } else {
     bubble.style.backgroundColor = "#f5f5f5";
-    bubble.style.border = "1px dashed #aaa";
     bubble.style.color = "#333";
+    bubble.style.border = "1px dashed #aaa";
   }
 
   bubble.textContent = text;
   row.appendChild(bubble);
   chatContainer.appendChild(row);
 
-  // автоскролл
+  // автоскролл в самый низ
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
@@ -548,25 +579,24 @@ function clearButtons() {
   buttonsContainer.innerHTML = "";
 }
 
-function renderButtons(labels, onClick) {
+function renderButtons(buttonLabels, onClick) {
   clearButtons();
-  labels.forEach(function (label, index) {
+
+  buttonLabels.forEach((label, index) => {
     const btn = document.createElement("button");
     btn.textContent = label;
     btn.style.width = "100%";
     btn.style.margin = "4px 0";
     btn.style.padding = "10px 12px";
-    btn.style.borderRadius = "22px";
+    btn.style.borderRadius = "999px";
     btn.style.border = "1px solid #000";
     btn.style.backgroundColor = "#BDBCBC";
     btn.style.cursor = "pointer";
     btn.style.fontSize = "14px";
     btn.style.fontFamily =
-      "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace";
-    btn.style.transition = "background-color 0.15s ease, opacity 0.15s ease";
-
+      "'LCD 16x2 Display', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
     btn.onmouseenter = function () {
-      btn.style.backgroundColor = "#D4D4D4";
+      btn.style.backgroundColor = "#d8d8d8";
     };
     btn.onmouseleave = function () {
       btn.style.backgroundColor = "#BDBCBC";
@@ -574,14 +604,12 @@ function renderButtons(labels, onClick) {
     btn.onclick = function () {
       onClick(index, label);
     };
-
     buttonsContainer.appendChild(btn);
   });
 }
 
 function disableButtons() {
-  const list = buttonsContainer.querySelectorAll("button");
-  list.forEach(function (btn) {
+  Array.from(buttonsContainer.querySelectorAll("button")).forEach((btn) => {
     btn.disabled = true;
     btn.style.opacity = "0.6";
     btn.style.cursor = "default";
@@ -597,9 +625,9 @@ function startLevel(index) {
   currentLevelIndex = index;
   currentStepIndex = 0;
 
-  headerTitleEl.textContent = level.title;
+  headerTitleEl.textContent = level.title.toUpperCase();
   avatarEmojiEl.textContent = level.avatarEmoji;
-  avatarNameEl.textContent = level.clientName.toUpperCase();
+  avatarNameEl.textContent = level.clientName;
   setHint("");
 
   clearChat();
@@ -609,6 +637,7 @@ function startLevel(index) {
 
 function renderStep(level, stepIndex) {
   const step = level.steps[stepIndex];
+
   if (!step) {
     renderFinalChoice(level);
     return;
@@ -641,7 +670,7 @@ function handleStepChoice(level, stepIndex, choiceIndex, buttonText) {
       : [{ from: "user", text: buttonText }];
 
   let delay = 0;
-  dialog.forEach(function (replica) {
+  dialog.forEach((replica) => {
     setTimeout(function () {
       addMessage(replica.text, replica.from);
     }, delay);
@@ -649,7 +678,7 @@ function handleStepChoice(level, stepIndex, choiceIndex, buttonText) {
   });
 
   setTimeout(function () {
-    currentStepIndex += 1;
+    currentStepIndex++;
     if (currentStepIndex < level.steps.length) {
       renderStep(level, currentStepIndex);
     } else {
@@ -659,7 +688,7 @@ function handleStepChoice(level, stepIndex, choiceIndex, buttonText) {
 }
 
 // ----------------------------------------------------
-//             ФИНАЛЬНОЕ РЕШЕНИЕ ПО УРОВНЮ
+//           ФИНАЛЬНОЕ РЕШЕНИЕ ПО УРОВНЮ
 // ----------------------------------------------------
 
 function renderFinalChoice(level) {
@@ -676,21 +705,28 @@ function handleFinalChoice(level, playerThinksAdequate) {
   disableButtons();
   setHint("");
 
-  const isSuccess = playerThinksAdequate === level.clientIsAdequate;
-  const closingText = isSuccess
-    ? level.closingTexts.correct
-    : level.closingTexts.wrong;
+  const isCorrect = playerThinksAdequate === level.clientIsAdequate;
 
-  // Финальная реплика — ВСЕГДА от нас, зелёный пузырь
+  let closingText;
+  if (isCorrect && level.clientIsAdequate) {
+    closingText = level.closingTexts.goodAdequate;
+  } else if (isCorrect && !level.clientIsAdequate) {
+    closingText = level.closingTexts.goodNotAdequate;
+  } else if (!isCorrect && level.clientIsAdequate) {
+    closingText = level.closingTexts.badAdequate;
+  } else {
+    closingText = level.closingTexts.badNotAdequate;
+  }
+
   addMessage(closingText, "user");
 
   setTimeout(function () {
-    showResultScreen(level, isSuccess);
+    showResultScreen(level, isCorrect);
   }, 700);
 }
 
 // ----------------------------------------------------
-//                ЭКРАН РЕЗУЛЬТАТА
+//                 ЭКРАН РЕЗУЛЬТАТА
 // ----------------------------------------------------
 
 function showResultScreen(level, success) {
@@ -734,7 +770,7 @@ function showResultScreen(level, success) {
   title.style.fontSize = "40px";
   title.style.fontWeight = "900";
   title.style.fontFamily =
-    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace";
+    "'LCD 16x2 Display', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
   title.style.marginBottom = "16px";
   title.style.letterSpacing = "6px";
   title.style.textTransform = "uppercase";
@@ -743,7 +779,7 @@ function showResultScreen(level, success) {
   wrap.appendChild(title);
 
   const box = document.createElement("div");
-  box.style.backgroundColor = success ? "#c8f7c5" : "#ffb6c1";
+  box.style.backgroundColor = success ? "#A2E3B7" : "#ffb6c1";
   box.style.borderRadius = "24px";
   box.style.padding = "18px 16px";
   box.style.maxWidth = "420px";
@@ -755,7 +791,7 @@ function showResultScreen(level, success) {
   subtitle.style.fontSize = "16px";
   subtitle.style.fontWeight = "700";
   subtitle.style.fontFamily =
-    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace";
+    "'LCD 16x2 Display', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
   subtitle.style.marginBottom = "10px";
   subtitle.textContent = success
     ? "Почему выбор верный:"
@@ -775,6 +811,7 @@ function showResultScreen(level, success) {
   });
   box.appendChild(ul);
 
+  // Кнопка "далее / сыграть ещё раз"
   const btn = document.createElement("button");
   btn.textContent =
     currentLevelIndex < LEVELS.length - 1
@@ -803,10 +840,33 @@ function showResultScreen(level, success) {
     }
   };
   wrap.appendChild(btn);
+
+  // ИЗМЕНЕНИЕ №2: кнопка повтора текущего уровня
+  const retryBtn = document.createElement("button");
+  retryBtn.textContent = "Повторить уровень 🔁";
+  retryBtn.style.marginTop = "10px";
+  retryBtn.style.padding = "10px 18px";
+  retryBtn.style.borderRadius = "999px";
+  retryBtn.style.border = "none";
+  retryBtn.style.cursor = "pointer";
+  retryBtn.style.fontSize = "15px";
+  retryBtn.style.fontWeight = "600";
+  retryBtn.style.fontFamily = subtitle.style.fontFamily;
+  retryBtn.style.backgroundColor = getThemeColor(
+    "--tg-theme-secondary-bg-color",
+    "#bdbcbc"
+  );
+  retryBtn.style.color = getThemeColor("--tg-theme-text-color", "#000");
+  retryBtn.onclick = function () {
+    root.innerHTML = "";
+    initLayout();
+    startLevel(currentLevelIndex);
+  };
+  wrap.appendChild(retryBtn);
 }
 
 // ----------------------------------------------------
-//                  СТАРТ ИГРЫ
+//                СТАРТ ИГРЫ
 // ----------------------------------------------------
 
 initLayout();
