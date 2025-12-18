@@ -840,6 +840,12 @@ function showResultScreen(level, success) {
     }
   };
   wrap.appendChild(btn);
+  
+  // --- Кнопка "Назад" (теперь она на экране успеха/провала, а НЕ на уровнях) ---
+  const backBtn = makeGreyButton("Назад ◀︎");
+  backBtn.style.marginTop = "10px";
+  backBtn.onclick = () => goBack();
+  wrap.appendChild(backBtn);
 
   // ИЗМЕНЕНИЕ №2: кнопка повтора текущего уровня
   const retryBtn = document.createElement("button");
@@ -970,7 +976,7 @@ function buildMenuCard({ title, subtitle, withBack }) {
   btns.style.marginTop = "14px";
   card.appendChild(btns);
 
-  // Back button (внизу, как просила)
+  // Back button (внизу)
   if (withBack) {
     const back = makeGreyButton("Назад ◀︎");
     back.onclick = () => goBack();
@@ -1043,16 +1049,20 @@ function renderLevelsMenu() {
   hint.textContent = "Выбери уровень — начнёшь сразу с него.";
   content.appendChild(hint);
 
-  // кнопки 1..5
+  // кнопки 1..5 СВЕРХУ ВНИЗ, "Назад" остаётся последним
+  const backEl = btns.lastChild; // это "Назад ◀︎"
+
   LEVELS.forEach((lvl, idx) => {
     const b = makeGreyButton(lvl.title);
     b.onclick = () => navigate({ name: "game", levelIndex: idx });
-    btns.insertBefore(b, btns.firstChild); // чтобы "Назад" был последним
+
+    if (backEl) btns.insertBefore(b, backEl);
+    else btns.appendChild(b);
   });
 }
 
 function renderAbout() {
-  const { content, btns, titleFont } = buildMenuCard({
+  const { content, titleFont } = buildMenuCard({
     title: "Об игре",
     subtitle: "зачем это всё",
     withBack: true
@@ -1070,27 +1080,13 @@ function renderAbout() {
     "предлагать реалистичный формат и вовремя отказываться от токсичных условий. " +
     "После уровня ты увидишь разбор — почему выбор был верным или нет, и сможешь переиграть.";
   content.appendChild(text);
-
-  // "Назад" уже добавлен внизу карточки через withBack
-  // (не добавляем лишнего)
 }
 
 function renderGame(levelIndex) {
   // запускаем твой существующий интерфейс игры
   initLayout();
 
-  // добавляем "Назад" (вне контейнера кнопок выбора, чтобы не мешать)
-  // аккуратно вверху карточки (над остальным), но внутри root
-  const backWrap = document.createElement("div");
-  backWrap.style.width = "100%";
-  backWrap.style.maxWidth = "420px";
-  backWrap.style.margin = "0 auto 10px";
-  backWrap.style.boxSizing = "border-box";
-  root.insertBefore(backWrap, root.firstChild);
-
-  const backBtn = makeGreyButton("Назад ◀︎");
-  backBtn.onclick = () => goBack();
-  backWrap.appendChild(backBtn);
+  // ВАЖНО: на уровнях НЕТ кнопки "Назад" (по твоей правке)
 
   // стартуем уровень
   startLevel(levelIndex);
@@ -1106,4 +1102,3 @@ function renderScreen() {
 
 // ----------- ВАЖНО: старт приложения теперь отсюда -----------
 renderScreen();
-
