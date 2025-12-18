@@ -866,8 +866,244 @@ function showResultScreen(level, success) {
 }
 
 // ----------------------------------------------------
-//                СТАРТ ИГРЫ
+//            СТАРТОВЫЕ ЭКРАНЫ + НАВИГАЦИЯ
 // ----------------------------------------------------
 
-initLayout();
-startLevel(0);
+// стек навигации: "назад" = вернуться к предыдущему экрану
+let navStack = [];
+let currentScreen = { name: "home" }; // home | levels | about | game
+
+function navigate(next) {
+  navStack.push(currentScreen);
+  currentScreen = next;
+  renderScreen();
+}
+
+function goBack() {
+  if (!navStack.length) return;
+  currentScreen = navStack.pop();
+  renderScreen();
+}
+
+function ensureRootBase() {
+  // базовые стили как в игре (ничего "дизайнового" не меняем)
+  document.body.style.margin = "0";
+  document.body.style.fontFamily =
+    "system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  document.body.style.backgroundColor = getThemeColor(
+    "--tg-theme-secondary-bg-color",
+    "#dcdde1"
+  );
+
+  root = document.getElementById("root");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "root";
+    document.body.appendChild(root);
+  }
+  root.innerHTML = "";
+
+  // как в твоём дизайне: карточка сверху
+  root.style.minHeight = "100vh";
+  root.style.display = "flex";
+  root.style.justifyContent = "center";
+  root.style.alignItems = "flex-start";
+  root.style.padding = "12px 16px 16px 16px";
+  root.style.boxSizing = "border-box";
+}
+
+function buildMenuCard({ title, subtitle, withBack }) {
+  ensureRootBase();
+
+  const card = document.createElement("div");
+  card.style.width = "100%";
+  card.style.maxWidth = "420px";
+  card.style.backgroundColor = getThemeColor("--tg-theme-bg-color", "#f5f6fa");
+  card.style.borderRadius = "32px";
+  card.style.boxShadow = "0 12px 40px rgba(0,0,0,0.12)";
+  card.style.display = "flex";
+  card.style.flexDirection = "column";
+  card.style.padding = "20px 20px 16px 20px";
+  card.style.boxSizing = "border-box";
+  root.appendChild(card);
+
+  // Header (как по стилю)
+  const header = document.createElement("div");
+  header.style.textAlign = "center";
+  header.style.marginBottom = "12px";
+  card.appendChild(header);
+
+  const t = document.createElement("div");
+  t.textContent = (title || "").toUpperCase();
+  t.style.fontSize = "20px";
+  t.style.fontWeight = "700";
+  t.style.letterSpacing = "2px";
+  t.style.textTransform = "uppercase";
+  t.style.marginBottom = "6px";
+  t.style.fontFamily =
+    "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+  t.style.color = getThemeColor("--tg-theme-text-color", "#111");
+  header.appendChild(t);
+
+  if (subtitle) {
+    const s = document.createElement("div");
+    s.textContent = subtitle;
+    s.style.fontSize = "13px";
+    s.style.letterSpacing = "1px";
+    s.style.textTransform = "uppercase";
+    s.style.fontFamily = t.style.fontFamily;
+    s.style.color = getThemeColor("--tg-theme-hint-color", "#666");
+    header.appendChild(s);
+  }
+
+  // Content container
+  const content = document.createElement("div");
+  content.style.background = "#f5f5f5";
+  content.style.borderRadius = "24px";
+  content.style.padding = "14px";
+  content.style.boxSizing = "border-box";
+  content.style.marginTop = "10px";
+  card.appendChild(content);
+
+  // Buttons container
+  const btns = document.createElement("div");
+  btns.style.marginTop = "14px";
+  card.appendChild(btns);
+
+  // Back button (внизу, как просила)
+  if (withBack) {
+    const back = makeGreyButton("Назад ◀︎");
+    back.onclick = () => goBack();
+    back.style.marginTop = "10px";
+    btns.appendChild(back);
+  }
+
+  return { card, content, btns, titleFont: t.style.fontFamily };
+}
+
+function makeGreyButton(text) {
+  const btn = document.createElement("button");
+  btn.textContent = text;
+  btn.style.width = "100%";
+  btn.style.margin = "4px 0";
+  btn.style.padding = "10px 12px";
+  btn.style.borderRadius = "999px";
+  btn.style.border = "1px solid #000";
+  btn.style.backgroundColor = "#BDBCBC";
+  btn.style.cursor = "pointer";
+  btn.style.fontSize = "14px";
+  btn.style.fontFamily =
+    "'LCD 16x2 Display', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+  btn.onmouseenter = () => (btn.style.backgroundColor = "#d8d8d8");
+  btn.onmouseleave = () => (btn.style.backgroundColor = "#BDBCBC");
+  return btn;
+}
+
+function renderHome() {
+  const { content, btns, titleFont } = buildMenuCard({
+    title: "Freelancing",
+    subtitle: "мини-приложение",
+    withBack: false
+  });
+
+  const p = document.createElement("div");
+  p.style.fontFamily = titleFont;
+  p.style.fontSize = "14px";
+  p.style.lineHeight = "1.5";
+  p.style.color = "#111";
+  p.textContent =
+    "Тренажёр переписок с клиентами: выбирай реплики, оценивай адекватность и учись ставить рамки без токсичности.";
+  content.appendChild(p);
+
+  const startBtn = makeGreyButton("Старт игры ▶︎");
+  startBtn.onclick = () => navigate({ name: "game", levelIndex: 0 });
+  btns.appendChild(startBtn);
+
+  const levelsBtn = makeGreyButton("Уровни ☰");
+  levelsBtn.onclick = () => navigate({ name: "levels" });
+  btns.appendChild(levelsBtn);
+
+  const aboutBtn = makeGreyButton("Об игре ℹ︎");
+  aboutBtn.onclick = () => navigate({ name: "about" });
+  btns.appendChild(aboutBtn);
+}
+
+function renderLevelsMenu() {
+  const { content, btns, titleFont } = buildMenuCard({
+    title: "Уровни",
+    subtitle: "выбор сценария",
+    withBack: true
+  });
+
+  const hint = document.createElement("div");
+  hint.style.fontFamily = titleFont;
+  hint.style.fontSize = "13px";
+  hint.style.lineHeight = "1.45";
+  hint.style.color = "#333";
+  hint.textContent = "Выбери уровень — начнёшь сразу с него.";
+  content.appendChild(hint);
+
+  // кнопки 1..5
+  LEVELS.forEach((lvl, idx) => {
+    const b = makeGreyButton(lvl.title);
+    b.onclick = () => navigate({ name: "game", levelIndex: idx });
+    btns.insertBefore(b, btns.firstChild); // чтобы "Назад" был последним
+  });
+}
+
+function renderAbout() {
+  const { content, btns, titleFont } = buildMenuCard({
+    title: "Об игре",
+    subtitle: "зачем это всё",
+    withBack: true
+  });
+
+  const text = document.createElement("div");
+  text.style.fontFamily = titleFont;
+  text.style.fontSize = "14px";
+  text.style.lineHeight = "1.6";
+  text.style.color = "#111";
+  text.textContent =
+    "Freelancing — мини-тренажёр про переписки фрилансера с клиентами. " +
+    "В каждом уровне ты выбираешь реплики, а в конце решаешь: клиент адекватный или нет. " +
+    "Успех — это не «угодить», а держать рамки: уточнять вводные, фиксировать ожидания, " +
+    "предлагать реалистичный формат и вовремя отказываться от токсичных условий. " +
+    "После уровня ты увидишь разбор — почему выбор был верным или нет, и сможешь переиграть.";
+  content.appendChild(text);
+
+  // "Назад" уже добавлен внизу карточки через withBack
+  // (не добавляем лишнего)
+}
+
+function renderGame(levelIndex) {
+  // запускаем твой существующий интерфейс игры
+  initLayout();
+
+  // добавляем "Назад" (вне контейнера кнопок выбора, чтобы не мешать)
+  // аккуратно вверху карточки (над остальным), но внутри root
+  const backWrap = document.createElement("div");
+  backWrap.style.width = "100%";
+  backWrap.style.maxWidth = "420px";
+  backWrap.style.margin = "0 auto 10px";
+  backWrap.style.boxSizing = "border-box";
+  root.insertBefore(backWrap, root.firstChild);
+
+  const backBtn = makeGreyButton("Назад ◀︎");
+  backBtn.onclick = () => goBack();
+  backWrap.appendChild(backBtn);
+
+  // стартуем уровень
+  startLevel(levelIndex);
+}
+
+function renderScreen() {
+  if (currentScreen.name === "home") return renderHome();
+  if (currentScreen.name === "levels") return renderLevelsMenu();
+  if (currentScreen.name === "about") return renderAbout();
+  if (currentScreen.name === "game")
+    return renderGame(currentScreen.levelIndex ?? 0);
+}
+
+// ----------- ВАЖНО: старт приложения теперь отсюда -----------
+renderScreen();
+
